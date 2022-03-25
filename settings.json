@@ -1,0 +1,11 @@
+{
+    "game_style": {
+        "bfs": false,
+        "ez_flag": false,
+        "height": 16,
+        "mines": 99,
+        "mode": 3,
+        "nf": false,
+        "width": 30
+    }
+}
