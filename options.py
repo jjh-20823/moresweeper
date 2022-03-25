@@ -5,11 +5,13 @@ setting_path = ".\settings.json"
 class Options():
     def __init__(self):
         self.opts = {
-            "game_style": {
+            "game": {
                 "mode": 3,
                 "height": 16, 
                 "width": 30,
                 "mines": 99,
+            }, 
+            "game_style": {
                 "bfs": False, 
                 "ez_flag": False, 
                 "nf": False

@@ -1,0 +1,15 @@
+# MINE = -1
+# BLAST = -2
+# WRONGFLAG = -3
+# UNFLAGGED = -4
+# COVERED = 9
+# DOWN = 10
+# FLAGGED = 11
+
+MINE = 'M'
+BLAST = 'B'
+WRONGFLAG = 'W'
+UNFLAGGED = 'U'
+COVERED = 'C'
+DOWN = 'D'
+FLAGGED = 'F'

@@ -1,11 +1,4 @@
-
-MINE = -1
-BLAST = -2
-WRONGFLAG = -3
-UNFLAGGED = -4
-COVERED = 9
-DOWN = 10
-FLAGGED = 11
+from CONST import *
 
 class Tile():
     # __slots__ = []
@@ -48,7 +41,7 @@ class Tile():
     def update_blast(self):
         if self.flagged and not self.is_mine:
             self.status = WRONGFLAG
-        elif self.down and self.is_mine:
+        elif not self.covered and self.is_mine:
             self.status = BLAST
         elif not self.flagged and self.is_mine:
             self.status = MINE
