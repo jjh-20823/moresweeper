@@ -1,19 +1,20 @@
 from tile import Tile
 from options import Options
 from counter import Counter
+from random import shuffle
 
 class Game():
     def __init__(self, opts):
-        self.height = opts.opts["game"]["height"]
-        self.width = opts.opts["game"]["width"]
-        self.mines = opts.opts["game"]["mines"]
+        self.opts = opts.opts
+
+        self.height = self.opts["game"]["height"]
+        self.width = self.opts["game"]["width"]
+        self.mines = self.opts["game"]["mines"]
         self.board = [[Tile(x, y) for y in range(self.width)] for x in range(self.height)]
         
         self.first = True
         self.finish = False
         self.blast = False
-
-        self.opts = opts
 
     def set_neighbours(self):
         for x in range(self.height):
@@ -29,11 +30,16 @@ class Game():
                 )
                 self.board[x][y].neighbours.remove(self.board[x][y])
     
-    def set_mine(self, x, y):
+    def init(self, x, y):
         temp = [(i, j) for j in range(self.width) for i in range(self.height) if i != x and j != y]
-        temp.shuffle()
+        shuffle(temp)
         for u, v in temp[:self.mines]:
             self.board[u][v].set_mine()
+        self.set_neighbours()
+        for x in range(self.height):
+            for y in range(self.width):
+                self.board[x][y].set_num()
+                
 
     def finish_check(self):
         for x in range(self.height):
@@ -58,10 +64,10 @@ class Game():
         return self.blast
 
     def operate(func):
-        def temp(self):
+        def temp(self, x, y):
             if self.blast or self.finish:
                 return
-            func(self)
+            func(self, x, y)
             if not self.finish_check() and not self.blast_check():
                 for x in range(self.height):
                     for y in range(self.width):
@@ -71,7 +77,7 @@ class Game():
     @operate
     def left(self, x, y):
         if self.first:
-            self.set_mine(x, y)
+            self.init(x, y)
             self.first = False
         if self.opts["game_style"]["bfs"]:
             self.board[x][y].BFS_open()
@@ -113,7 +119,13 @@ class Game():
                 for y in range(self.width)
             )
             for x in range(self.height)
-        )
+        ) + '\n'
 
 e = Game(Options())
+print(e)
+e.left(0, 0)
+e.left(15, 0)
+e.left(15, 29)
+e.left(0, 29)
+print('\n')
 print(e)

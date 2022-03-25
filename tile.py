@@ -68,19 +68,19 @@ class Tile():
     def basic_open(self):
         if self.flagged or not self.covered:
             return set()
-        self.down = True
+        self.down = False
         self.covered = False
         if not self.is_mine and self.num == 0:
             return self.neighbours
         return set()
 
     def open(self):
-        search = set(self)
+        search = set((self,))
         searched = set()
         while(search):
             t = search.pop()
             searched.add(t)
-            search = search + t.basic_open() - searched
+            search = search | t.basic_open() - searched
         return searched
 
     def double(self):
@@ -90,13 +90,13 @@ class Tile():
         temp = set()
         if self.num == sum(1 for t in self.neighbours if t.flagged):
             for t in self.neighbours:
-                temp = temp + t.open()
+                temp = temp | t.open()
         # return temp
 
     def basic_BFS_open(self):
         if self.flagged or not self.covered:
             return set()
-        self.down = True
+        self.down = False
         self.covered = False
         if not self.is_mine and self.num == sum(1 for t in self.neighbours if t.flagged):
             return self.neighbours
@@ -108,7 +108,7 @@ class Tile():
         while(search):
             t = search.pop()
             searched.add(t)
-            search = search + t.basic_BFS_open() - searched
+            search = search | t.basic_BFS_open() - searched
         return searched
 
     def BFS_double(self):
@@ -118,7 +118,7 @@ class Tile():
         temp = set()
         if self.num == sum(1 for t in self.neighbours if t.flagged):
             for t in self.neighbours:
-                temp = temp + t.BFS_open()
+                temp = temp | t.BFS_open()
         # return temp
 
     def flag(self):
