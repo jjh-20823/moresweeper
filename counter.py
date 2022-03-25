@@ -1,0 +1,3 @@
+class Counter():
+    def __init__():
+        ...

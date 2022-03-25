@@ -22,4 +22,4 @@ class Options():
 
     def save(self):
         with open(setting_path, "w") as write_f:
-            json.dump(self.opts, write_f, indent=4, sort_keys=True, ensure_ascii=False)
+            json.dump(self.opts, write_f, indent=4, ensure_ascii=False)

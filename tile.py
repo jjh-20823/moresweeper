@@ -25,6 +25,9 @@ class Tile():
     def __repr__(self) -> str:
         return '({}, {})'.format(self.x, self.y)
 
+    def set_mine(self):
+        self.is_mine = True
+
     def set_num(self):
         if self.is_mine:
             return
