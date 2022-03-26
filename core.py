@@ -1,11 +1,11 @@
 from tile import Tile
-from options import Options
+from options import options
 from counter import Counter
 from random import shuffle
 
-class Game():
-    def __init__(self, opts):
-        self.opts = opts.opts
+class Board():
+    def __init__(self):
+        self.opts = options
 
         self.height = self.opts["game"]["height"]
         self.width = self.opts["game"]["width"]
@@ -121,11 +121,11 @@ class Game():
             for x in range(self.height)
         ) + '\n'
 
-e = Game(Options())
-print(e)
-e.left(0, 0)
-e.left(15, 0)
-e.left(15, 29)
-e.left(0, 29)
-print('\n')
-print(e)
+# e = Game(Options())
+# print(e)
+# e.left(0, 0)
+# e.left(15, 0)
+# e.left(15, 29)
+# e.left(0, 29)
+# print('\n')
+# print(e)

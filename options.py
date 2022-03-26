@@ -25,3 +25,5 @@ class Options():
     def save(self):
         with open(setting_path, "w") as write_f:
             json.dump(self.opts, write_f, indent=4, ensure_ascii=False)
+
+options = Options()
