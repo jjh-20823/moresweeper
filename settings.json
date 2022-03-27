@@ -4,8 +4,8 @@
         "height": 16,
         "width": 30,
         "mines": 99,
-        "bfs": false,
-        "ez_flag": false,
+        "bfs": true,
+        "ez_flag": true,
         "nf": false
         
     }, 

@@ -118,7 +118,7 @@ class Tile():
         self.double_unhold()
         if not self.covered and self.num == sum(1 for t in self.neighbours if t.flagged):
             for t in self.neighbours:
-                t.open()
+                t.BFS_open()
 
     def flag(self):
         if self.flagged:
@@ -133,4 +133,5 @@ class Tile():
             self.flagged = True
         elif self.num == sum(1 for t in self.neighbours if t.covered):
             for t in self.neighbours:
-                t.flagged = True
+                if t.covered:
+                    t.flagged = True
