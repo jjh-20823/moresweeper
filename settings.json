@@ -1,11 +1,16 @@
 {
     "game_style": {
+        "mode": 3,
+        "height": 16,
+        "width": 30,
+        "mines": 99,
         "bfs": false,
         "ez_flag": false,
-        "height": 16,
-        "mines": 99,
-        "mode": 3,
-        "nf": false,
-        "width": 30
+        "nf": false
+        
+    }, 
+    "UI": {
+        "skin": "default", 
+        "size": 32
     }
 }

@@ -3,8 +3,7 @@ from CONST import *
 class Tile():
     # __slots__ = []
     def __init__(self, x, y):
-        self.x = x
-        self.y = y
+        self.x, self.y = x, y
         self.is_mine = False
         self.num = 0
         self.neighbours = set()
@@ -39,36 +38,44 @@ class Tile():
 
     # update status when blast
     def update_blast(self):
+        self.update()
         if self.flagged and not self.is_mine:
             self.status = WRONGFLAG
         elif not self.covered and self.is_mine:
             self.status = BLAST
         elif not self.flagged and self.is_mine:
             self.status = MINE
+        # else:
+        #     self.unhold()
         return self.status
 
     def left_hold(self):
+        # print(self.x, self.y)
         if self.covered and not self.flagged:
             self.down = True
 
-    def left_unhold(self):
-        if self.covered and not self.flagged:
+    def unhold(self):
+        # print(self.x, self.y)
+        if not self.flagged:
             self.down = False
 
     def double_hold(self):
-        if not self.covered and not self.flagged:
+        self.left_hold()
+        if not self.flagged:
             for t in self.neighbours:
                 t.left_hold()
 
     def double_unhold(self):
-        if not self.covered and not self.flagged:
+        self.unhold()
+        if not self.flagged:
             for t in self.neighbours:
-                t.left_unhold()
+                t.unhold()
 
     def basic_open(self):
+        # print(self.x, self.y)
+        self.unhold()
         if self.flagged or not self.covered:
             return set()
-        self.down = False
         self.covered = False
         if not self.is_mine and self.num == 0:
             return self.neighbours
@@ -84,26 +91,22 @@ class Tile():
         return searched
 
     def double(self):
-        if self.covered:
-            self.down = False
-            return set()
-        temp = set()
-        if self.num == sum(1 for t in self.neighbours if t.flagged):
+        self.double_unhold()
+        if not self.covered and self.num == sum(1 for t in self.neighbours if t.flagged):
             for t in self.neighbours:
-                temp = temp | t.open()
-        # return temp
+                t.open()
 
     def basic_BFS_open(self):
+        self.unhold()
         if self.flagged or not self.covered:
             return set()
-        self.down = False
         self.covered = False
         if not self.is_mine and self.num == sum(1 for t in self.neighbours if t.flagged):
             return self.neighbours
         return set()
 
     def BFS_open(self):
-        search = set(self)
+        search = set((self,))
         searched = set()
         while(search):
             t = search.pop()
@@ -112,14 +115,10 @@ class Tile():
         return searched
 
     def BFS_double(self):
-        if self.covered:
-            self.down = False
-            return set()
-        temp = set()
-        if self.num == sum(1 for t in self.neighbours if t.flagged):
+        self.double_unhold()
+        if not self.covered and self.num == sum(1 for t in self.neighbours if t.flagged):
             for t in self.neighbours:
-                temp = temp | t.BFS_open()
-        # return temp
+                t.open()
 
     def flag(self):
         if self.flagged:
