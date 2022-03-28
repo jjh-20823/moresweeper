@@ -21,7 +21,7 @@ class Board(object):
 
         self.set_neighbours()
 
-    def get_tile(self, x, y) -> Tile:
+    def get_tile(self, x: int, y: int) -> Tile:
         """Get a tile of a specific coordinate."""
         try:
             return self.tiles[x][y]

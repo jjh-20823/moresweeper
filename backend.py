@@ -126,8 +126,8 @@ class Tile(object):
         if self.flagged or not self.covered:
             return set()
         self.covered = False
-        if not self.is_mine and self.num == sum(
-                1 for t in self.neighbours if t.flagged):
+        if not self.is_mine and (self.num == sum(
+                1 for t in self.neighbours if t.flagged) or self.num == 0):
             return self.neighbours
         return set()
 
