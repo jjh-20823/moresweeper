@@ -20,12 +20,11 @@ class Tile(object):
     DOWN = 10  # opcode: DOWN, 10
     FLAGGED = 11  # opcode: FLAGGED, 11
 
-    def __init__(self, x, y):
+    def __init__(self, x: int, y: int):
         """Initialize a tile."""
         self.x: int = x  # coordinate X
         self.y: int = y  # coordinate Y
-        self.num: int = 0  # number
-        self.is_mine: bool = False  # mine indicator
+        self.value: int = 0  # value: -1 for mines, 0-8 for numbers
         self.flagged: bool = False  # flag indicator
         self.covered: bool = True  # cover indicator
         self.down: bool = False  # pressed indicator
@@ -34,37 +33,45 @@ class Tile(object):
 
     def __repr__(self) -> str:
         """Print a tile."""
-        return '({}, {})'.format(self.x, self.y)
+        return 'Tile: ({}, {}) \n'.format(self.x, self.y)
 
     def set_mine(self):
         """Set a tile with a mine."""
-        self.is_mine = True
+        self.value = -1
 
-    def set_num(self):
-        """Set a tile with a number."""
-        if self.is_mine:
+    def is_mine(self) -> bool:
+        """Judge whether the tile is a mine by its value."""
+        return self.value == -1
+
+    def set_value(self):
+        """Set a tile with a value."""
+        if self.is_mine():
             return
-        self.num = sum(1 for t in self.neighbours if t.is_mine)
+        self.value = sum(1 for t in self.neighbours if t.is_mine())
+
+    def get_neighbours(self) -> set:
+        """Get the neighbours of a tile."""
+        return self.neighbours
 
     def update(self):
         """Update status of a tile."""
-        self.status = Tile.FLAGGED if self.flagged else Tile.DOWN if self.down else Tile.COVERED if self.covered else self.num
+        self.status = Tile.FLAGGED if self.flagged else Tile.DOWN if self.down else Tile.COVERED if self.covered else self.value
         return self.status
 
     def update_finish(self):
         """Update status of a tile after finishing a game."""
-        if not self.flagged and self.is_mine:
+        if not self.flagged and self.is_mine():
             self.status = Tile.UNFLAGGED
         return self.status
 
     def update_blast(self):
         """Update status of a tile after failing a game."""
         self.update()
-        if self.flagged and not self.is_mine:
+        if self.flagged and not self.is_mine():
             self.status = Tile.WRONGFLAG
-        elif not self.covered and self.is_mine:
+        elif not self.covered and self.is_mine():
             self.status = Tile.BLAST
-        elif not self.flagged and self.is_mine:
+        elif not self.flagged and self.is_mine():
             self.status = Tile.MINE
         return self.status
 
@@ -82,14 +89,14 @@ class Tile(object):
         """Change status when holding the left and right mouse key."""
         self.left_hold()
         if not self.flagged:
-            for t in self.neighbours:
+            for t in self.get_neighbours():
                 t.left_hold()
 
     def double_unhold(self):
         """Change status when unholding the left and right mouse key."""
         self.unhold()
         if not self.flagged:
-            for t in self.neighbours:
+            for t in self.get_neighbours():
                 t.unhold()
 
     def basic_open(self):
@@ -98,8 +105,8 @@ class Tile(object):
         if self.flagged or not self.covered:
             return set()
         self.covered = False
-        if not self.is_mine and self.num == 0:
-            return self.neighbours
+        if not self.is_mine() and self.value == 0:
+            return self.get_neighbours()
         return set()
 
     def open(self):
@@ -115,9 +122,9 @@ class Tile(object):
     def double(self):
         """Handle chording."""
         self.double_unhold()
-        if not self.covered and self.num == sum(
-                1 for t in self.neighbours if t.flagged):
-            for t in self.neighbours:
+        if not self.covered and self.value == sum(
+                1 for t in self.get_neighbours() if t.flagged):
+            for t in self.get_neighbours():
                 t.open()
 
     def basic_BFS_open(self):
@@ -126,9 +133,9 @@ class Tile(object):
         if self.flagged or not self.covered:
             return set()
         self.covered = False
-        if not self.is_mine and (self.num == sum(
-                1 for t in self.neighbours if t.flagged) or self.num == 0):
-            return self.neighbours
+        if not self.is_mine() and (self.value == sum(
+                1 for t in self.get_neighbours() if t.flagged) or self.value == 0):
+            return self.get_neighbours()
         return set()
 
     def BFS_open(self):
@@ -144,9 +151,9 @@ class Tile(object):
     def BFS_double(self):
         """Handle chording with BFS."""
         self.double_unhold()
-        if not self.covered and self.num == sum(
-                1 for t in self.neighbours if t.flagged):
-            for t in self.neighbours:
+        if not self.covered and self.value == sum(
+                1 for t in self.get_neighbours() if t.flagged):
+            for t in self.get_neighbours():
                 t.BFS_open()
 
     def flag(self):
@@ -162,8 +169,8 @@ class Tile(object):
             self.flagged = False
         elif self.covered:
             self.flagged = True
-        elif self.num == sum(1 for t in self.neighbours if t.covered):
-            for t in self.neighbours:
+        elif self.value == sum(1 for t in self.get_neighbours() if t.covered):
+            for t in self.get_neighbours():
                 if t.covered:
                     t.flagged = True
 

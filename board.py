@@ -13,20 +13,13 @@ class Board(object):
         self.height: int = self.opts["height"]  # height
         self.width: int = self.opts["width"]  # width
         self.mines: int = self.opts["mines"]  # mines
-        self.tiles: list[Tile] = [[Tile(x, y) for y in range(self.width)]
-                                  for x in range(self.height)]  # tiles
+        self.tiles: list[list[Tile]] = [[Tile(x, y) for y in range(self.width)]
+                                          for x in range(self.height)]  # tiles
         self.first: bool = True
         self.finish: bool = False
         self.blast: bool = False
 
         self.set_neighbours()
-
-    def get_tile(self, x: int, y: int) -> Tile:
-        """Get a tile of a specific coordinate."""
-        try:
-            return self.tiles[x][y]
-        except:
-            return None
 
     def set_neighbours(self):
         for x in range(self.height):
@@ -48,12 +41,12 @@ class Board(object):
             self.tiles[u][v].set_mine()
         for x in range(self.height):
             for y in range(self.width):
-                self.tiles[x][y].set_num()
+                self.tiles[x][y].set_value()
 
     def finish_check(self):
         for x in range(self.height):
             for y in range(self.width):
-                if self.tiles[x][y].covered and not self.tiles[x][y].is_mine:
+                if self.tiles[x][y].covered and not self.tiles[x][y].is_mine():
                     return False
         self.finish = True
         for x in range(self.height):
@@ -64,7 +57,7 @@ class Board(object):
     def blast_check(self):
         for x in range(self.height):
             for y in range(self.width):
-                if not self.tiles[x][y].covered and self.tiles[x][y].is_mine:
+                if not self.tiles[x][y].covered and self.tiles[x][y].is_mine():
                     self.blast = True
         if self.blast:
             for x in range(self.height):
