@@ -14,8 +14,9 @@ class Board(object):
         self.height: int = self.opts["height"]  # height
         self.width: int = self.opts["width"]  # width
         self.mines: int = self.opts["mines"]  # mines
-        self.tiles: list[list[Tile]] = [[Tile(x, y) for y in range(self.width)]
-                                          for x in range(self.height)]  # tiles
+        self.tiles: list[list[Tile]] = [
+            [Tile(x, y) for y in range(self.width)] for x in range(self.height)
+        ]  # tiles
         self.first: bool = True
         self.finish: bool = False
         self.blast: bool = False
@@ -35,14 +36,17 @@ class Board(object):
                 self.tiles[x][y].neighbours.remove(self.tiles[x][y])
 
     def init(self, x, y):
-        temp = [(i, j) for j in range(self.width) for i in range(self.height)
-                if i != x and j != y]
-        shuffle(temp)
-        for u, v in temp[:self.mines]:
-            self.tiles[u][v].set_mine()
-        for x in range(self.height):
-            for y in range(self.width):
-                self.tiles[x][y].set_value()
+        """Initialize the board."""
+        mine_field = [(i, j) for j in range(self.width)
+                      for i in range(self.height) if (i, j) != (x, y)]
+        shuffle(mine_field)  # shuffle the field
+
+        for u, v in mine_field[:self.mines]:
+            self.tiles[u][v].set_mine()  # toggle mine value
+
+        self.tiles[x][y].set_value()
+        for u, v in mine_field[self.mines:]:
+            self.tiles[u][v].set_value()  # calculate normal value
 
     def finish_check(self):
         for x in range(self.height):
