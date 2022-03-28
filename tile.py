@@ -61,15 +61,13 @@ class Tile():
 
     def double_hold(self):
         self.left_hold()
-        if not self.flagged:
-            for t in self.neighbours:
-                t.left_hold()
+        for t in self.neighbours:
+            t.left_hold()
 
     def double_unhold(self):
         self.unhold()
-        if not self.flagged:
-            for t in self.neighbours:
-                t.unhold()
+        for t in self.neighbours:
+            t.unhold()
 
     def basic_open(self):
         # print(self.x, self.y)
