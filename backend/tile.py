@@ -1,12 +1,4 @@
-"""
-Backend for the minesweeper game.
-
-This file focus on inner logic of minesweeper, and does not handle UI logics.
-This file contains three classes:
-- Tile: Minimum unit of minesweeper
-- Board: A number of tiles
-- Counter: A number of game statistics
-"""
+"""The tile class."""
 
 
 class Tile(object):
@@ -134,7 +126,8 @@ class Tile(object):
             return set()
         self.covered = False
         if not self.is_mine() and (self.value == sum(
-                1 for t in self.get_neighbours() if t.flagged) or self.value == 0):
+                1 for t in self.get_neighbours() if t.flagged)
+                                   or self.value == 0):
             return self.get_neighbours()
         return set()
 
@@ -173,11 +166,3 @@ class Tile(object):
             for t in self.get_neighbours():
                 if t.covered:
                     t.flagged = True
-
-
-class Counter():
-    """Counter: A number of game statistics."""
-
-    def __init__(self):
-        """Initialize the counter."""
-        pass

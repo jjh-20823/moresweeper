@@ -1,6 +1,7 @@
 """Board: A number of tiles."""
 
-from backend import Tile, Counter
+from .tile import Tile
+from .counter import Counter
 from random import shuffle
 
 

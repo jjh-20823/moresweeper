@@ -1,5 +1,5 @@
 from options import load_options
-from board import Board
+from backend.board import Board
 from resources import get_skin
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal, Qt
