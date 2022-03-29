@@ -1,3 +1,4 @@
+from turtle import left
 from options import load_options
 from backend.board import Board
 from resources import get_skin
@@ -19,39 +20,27 @@ class boardUI(QtWidgets.QLabel):
 
     def __init__(self, parent=None):
         super(boardUI, self).__init__(parent)
+        self.signals = [self.left_hold, self.double_hold, self.left, self.right, self.double, self.drag]
         self.setMouseTracking(True)
         self.init_board()
 
     def init_board(self):
         self.board = Board(load_options("game_style"))
         self.height, self.width = self.board.height, self.board.width
-        self.opts = load_options("UI")
+        self.slots = [self.board.left_hold, self.board.double_hold, self.board.left, self.board.right, self.board.double, self.mousePressEvent]
 
+        self.opts = load_options("UI")
         self.tile_size = self.opts["size"]
         self.tile_maps = get_skin(self.opts["skin"], self.opts["size"])
 
         self.doubled = False  # hold L, click R, then the release of L should be ignored
 
-        self.left_hold.connect(self.board.left_hold)
-        self.double_hold.connect(self.board.double_hold)
-        self.left.connect(self.board.left)
-        self.right.connect(self.board.right)
-        self.double.connect(self.board.double)
-        self.drag.connect(self.mousePressEvent)
-
-        self.left_hold.disconnect()
-        self.double_hold.disconnect()
-        self.left.disconnect()
-        self.right.disconnect()
-        self.double.disconnect()
-        self.drag.disconnect()
-
-        self.left_hold.connect(self.board.left_hold)
-        self.double_hold.connect(self.board.double_hold)
-        self.left.connect(self.board.left)
-        self.right.connect(self.board.right)
-        self.double.connect(self.board.double)
-        self.drag.connect(self.mousePressEvent)
+        for signal, slot in zip(self.signals, self.slots):
+            try:
+                signal.disconnect()
+            except:
+                pass
+            signal.connect(slot)
 
     def paintEvent(self, event):
         super().paintEvent(event)
@@ -79,9 +68,9 @@ class boardUI(QtWidgets.QLabel):
             self.right.emit(x_axis, y_axis)
         elif signal == 3:
             self.double_hold.emit(x_axis, y_axis)
-        # LAGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGing
+            
         if int(event.buttons()) == 4:
-            self = self.init_board()
+            self = self.board.init_upk()
             return
         self.update()
 

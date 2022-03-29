@@ -41,6 +41,12 @@ class Tile(object):
             return
         self.value = sum(1 for t in self.neighbours if t.is_mine())
 
+    def recover(self):
+        self.flagged = False  # flag indicator
+        self.covered = True  # cover indicator
+        self.down = False  # pressed indicator
+        self.status = Tile.COVERED  # status for upper layer
+
     def get_neighbours(self) -> set:
         """Get the neighbours of a tile."""
         return self.neighbours
@@ -84,15 +90,15 @@ class Tile(object):
         for t in self.get_neighbours():
             t.left_hold()
 
-    def double_unhold(self):
-        """Change status when unholding the left and right mouse key."""
-        self.unhold()
-        for t in self.get_neighbours():
-            t.unhold()
+    # def double_unhold(self):
+    #     """Change status when unholding the left and right mouse key."""
+    #     self.unhold()
+    #     for t in self.get_neighbours():
+    #         t.unhold()
 
     def basic_open(self):
         """Handle basic opening."""
-        self.unhold()
+        # self.unhold()
         if self.flagged or not self.covered:
             return set()
         self.covered = False
@@ -112,7 +118,7 @@ class Tile(object):
 
     def double(self):
         """Handle chording."""
-        self.double_unhold()
+        # self.double_unhold()
         if not self.covered and self.value == sum(
                 1 for t in self.get_neighbours() if t.flagged):
             for t in self.get_neighbours():
@@ -120,7 +126,7 @@ class Tile(object):
 
     def basic_BFS_open(self):
         """Handle basic open with BFS."""
-        self.unhold()
+        # self.unhold()
         if self.flagged or not self.covered:
             return set()
         self.covered = False
@@ -142,7 +148,7 @@ class Tile(object):
 
     def BFS_double(self):
         """Handle chording with BFS."""
-        self.double_unhold()
+        # self.double_unhold()
         if not self.covered and self.value == sum(
                 1 for t in self.get_neighbours() if t.flagged):
             for t in self.get_neighbours():

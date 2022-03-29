@@ -14,10 +14,10 @@ class Board(object):
         self.height: int = self.opts["height"]  # height
         self.width: int = self.opts["width"]  # width
         self.mines: int = self.opts["mines"]  # mines
-        self.tiles: list[list[Tile]] = [
-            [Tile(x, y) for y in range(self.width)] for x in range(self.height)
-        ]  # tiles
         self.init()
+
+    def in_board(self, x, y):
+        return 0 <= x < self.height and 0 <= y < self.width
 
     def set_neighbours(self):
         for x in range(self.height):
@@ -39,11 +39,14 @@ class Board(object):
         self.first: bool = True
         self.finish: bool = False
         self.blast: bool = False
+        self.upk: bool = False
 
         self.set_neighbours()
 
     def set_mines(self, x, y):
         """Set mines for the board"""
+        if self.upk:
+            return
         mine_field = [(i, j) for j in range(self.width)
                       for i in range(self.height) if (i, j) != (x, y)]
         shuffle(mine_field)  # shuffle the field
@@ -54,6 +57,15 @@ class Board(object):
         self.tiles[x][y].set_value()
         for u, v in mine_field[self.mines:]:
             self.tiles[u][v].set_value()  # calculate normal value
+
+    def init_upk(self):
+        self.upk = True
+        for x in range(self.height):
+            for y in range(self.width):
+                self.tiles[x][y].recover()
+        self.first = True
+        self.finish = False
+        self.blast = False
 
 
     def finish_check(self):
@@ -79,18 +91,20 @@ class Board(object):
         return self.blast
 
     def operate(func):
-
-        def temp(self, x, y):
+        def inner(self, x, y):
             if self.blast or self.finish:
                 return
-            func(self, x, y)
+            for i in range(self.height):
+                for j in range(self.width):
+                    self.tiles[i][j].unhold()
+            if self.in_board(x, y):
+                func(self, x, y)
             if not self.finish_check() and not self.blast_check():
-                for x in range(self.height):
-                    for y in range(self.width):
+                for i in range(self.height):
+                    for j in range(self.width):
                         # self.tiles[x][y].unhold()
-                        self.tiles[x][y].update()
-
-        return temp
+                        self.tiles[i][j].update()
+        return inner
 
     @operate
     def left(self, x, y):
@@ -122,17 +136,17 @@ class Board(object):
 
     @operate
     def left_hold(self, x, y):
-        for i in range(self.height):
-            for j in range(self.width):
-                self.tiles[i][j].unhold()
+        # for i in range(self.height):
+        #     for j in range(self.width):
+        #         self.tiles[i][j].unhold()
         self.tiles[x][y].left_hold()
 
     @operate
     def double_hold(self, x, y):
         if not self.opts["nf"]:
-            for i in range(self.height):
-                for j in range(self.width):
-                    self.tiles[i][j].unhold()
+            # for i in range(self.height):
+            #     for j in range(self.width):
+            #         self.tiles[i][j].unhold()
             self.tiles[x][y].double_hold()
 
     def output(self):
