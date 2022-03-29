@@ -80,16 +80,14 @@ class Tile(object):
     def double_hold(self):
         """Change status when holding the left and right mouse key."""
         self.left_hold()
-        if not self.flagged:
-            for t in self.get_neighbours():
-                t.left_hold()
+        for t in self.get_neighbours():
+            t.left_hold()
 
     def double_unhold(self):
         """Change status when unholding the left and right mouse key."""
         self.unhold()
-        if not self.flagged:
-            for t in self.get_neighbours():
-                t.unhold()
+        for t in self.get_neighbours():
+            t.unhold()
 
     def basic_open(self):
         """Handle basic opening."""

@@ -39,6 +39,20 @@ class boardUI(QtWidgets.QLabel):
         self.double.connect(self.board.double)
         self.drag.connect(self.mousePressEvent)
 
+        self.left_hold.disconnect()
+        self.double_hold.disconnect()
+        self.left.disconnect()
+        self.right.disconnect()
+        self.double.disconnect()
+        self.drag.disconnect()
+
+        self.left_hold.connect(self.board.left_hold)
+        self.double_hold.connect(self.board.double_hold)
+        self.left.connect(self.board.left)
+        self.right.connect(self.board.right)
+        self.double.connect(self.board.double)
+        self.drag.connect(self.mousePressEvent)
+
     def paintEvent(self, event):
         super().paintEvent(event)
         painter = QPainter()
