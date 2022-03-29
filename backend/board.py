@@ -17,11 +17,7 @@ class Board(object):
         self.tiles: list[list[Tile]] = [
             [Tile(x, y) for y in range(self.width)] for x in range(self.height)
         ]  # tiles
-        self.first: bool = True
-        self.finish: bool = False
-        self.blast: bool = False
-
-        self.set_neighbours()
+        self.init()
 
     def set_neighbours(self):
         for x in range(self.height):
@@ -35,8 +31,19 @@ class Board(object):
                     for j in range(left, right + 1))
                 self.tiles[x][y].neighbours.remove(self.tiles[x][y])
 
-    def init(self, x, y):
+    def init(self):
         """Initialize the board."""
+        self.tiles: list[list[Tile]] = [
+            [Tile(x, y) for y in range(self.width)] for x in range(self.height)
+        ]  # tiles
+        self.first: bool = True
+        self.finish: bool = False
+        self.blast: bool = False
+
+        self.set_neighbours()
+
+    def set_mines(self, x, y):
+        """Set mines for the board"""
         mine_field = [(i, j) for j in range(self.width)
                       for i in range(self.height) if (i, j) != (x, y)]
         shuffle(mine_field)  # shuffle the field
@@ -47,6 +54,7 @@ class Board(object):
         self.tiles[x][y].set_value()
         for u, v in mine_field[self.mines:]:
             self.tiles[u][v].set_value()  # calculate normal value
+
 
     def finish_check(self):
         for x in range(self.height):
@@ -88,7 +96,7 @@ class Board(object):
     def left(self, x, y):
         # self.tiles[x][y].left_unhold()
         if self.first:
-            self.init(x, y)
+            self.set_mines(x, y)
             self.first = False
         if self.opts["bfs"]:
             self.tiles[x][y].BFS_open()

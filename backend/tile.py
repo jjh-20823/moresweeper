@@ -52,6 +52,7 @@ class Tile(object):
 
     def update_finish(self):
         """Update status of a tile after finishing a game."""
+        self.update()
         if not self.flagged and self.is_mine():
             self.status = Tile.UNFLAGGED
         return self.status
