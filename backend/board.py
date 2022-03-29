@@ -13,28 +13,33 @@ class Board(object):
         self.opts: dict = options  # load options
         self.height: int = self.opts["height"]  # height
         self.width: int = self.opts["width"]  # width
+        self.tile_count: int = self.height * self.width
         self.mines: int = self.opts["mines"]  # mines
         self.init()
 
+    def xy_index(self, x, y):
+        return x * self.width + y
+
     def in_board(self, x, y):
         return 0 <= x < self.height and 0 <= y < self.width
+    
+    def get_tile(self, x, y):
+        return self.tiles[self.xy_index(x, y)] if self.in_board(x, y) else None
 
     def set_neighbours(self):
         for x in range(self.height):
             for y in range(self.width):
-                up = 0 if x == 0 else -1
-                down = 0 if x == self.height - 1 else 1
-                left = 0 if y == 0 else -1
-                right = 0 if y == self.width - 1 else 1
-                self.tiles[x][y].neighbours = set(
-                    self.tiles[x + i][y + j] for i in range(up, down + 1)
-                    for j in range(left, right + 1))
-                self.tiles[x][y].neighbours.remove(self.tiles[x][y])
+                tile = self.tiles[self.xy_index(x, y)]
+                tile.neighbours = set(
+                    self.get_tile(x + i, y + j) for i in (-1, 0, 1)
+                    for j in range(-1, 0, 1))
+                tile.neighbours.remove(tile)
+                tile.neighbours.discard(None)
 
     def init(self):
         """Initialize the board."""
-        self.tiles: list[list[Tile]] = [
-            [Tile(x, y) for y in range(self.width)] for x in range(self.height)
+        self.tiles: list[Tile] = [
+            Tile(x, y) for x in range(self.height) for y in range(self.width)
         ]  # tiles
         self.first: bool = True
         self.finish: bool = False
@@ -43,20 +48,19 @@ class Board(object):
 
         self.set_neighbours()
 
-    def set_mines(self, x, y):
+    def set_mines(self, index):
         """Set mines for the board"""
         if self.upk:
             return
-        mine_field = [(i, j) for j in range(self.width)
-                      for i in range(self.height) if (i, j) != (x, y)]
+        mine_field = [i for i in range(self.tile_count) if i != index]
         shuffle(mine_field)  # shuffle the field
 
-        for u, v in mine_field[:self.mines]:
-            self.tiles[u][v].set_mine()  # toggle mine value
+        for i in mine_field[:self.mines]:
+            self.tiles[i].set_mine()  # toggle mine value
 
-        self.tiles[x][y].set_value()
-        for u, v in mine_field[self.mines:]:
-            self.tiles[u][v].set_value()  # calculate normal value
+        self.tiles[index].set_value()
+        for i in mine_field[self.mines:]:
+            self.tiles[i].set_value()  # calculate normal value
 
     def init_upk(self):
         self.upk = True
