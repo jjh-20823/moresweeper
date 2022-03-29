@@ -13,28 +13,31 @@ class Board(object):
         self.opts: dict = options  # load options
         self.height: int = self.opts["height"]  # height
         self.width: int = self.opts["width"]  # width
+        self.tile_count: int = self.height * self.width
         self.mines: int = self.opts["mines"]  # mines
         self.init()
 
+    def xy_index(self, x, y):
+        return x * self.width + y
+
     def in_board(self, x, y):
         return 0 <= x < self.height and 0 <= y < self.width
+    
+    def get_tile(self, x, y):
+        return self.tiles[self.xy_index(x, y)] if self.in_board(x, y) else None
 
     def set_neighbours(self):
-        for x in range(self.height):
-            for y in range(self.width):
-                up = 0 if x == 0 else -1
-                down = 0 if x == self.height - 1 else 1
-                left = 0 if y == 0 else -1
-                right = 0 if y == self.width - 1 else 1
-                self.tiles[x][y].neighbours = set(
-                    self.tiles[x + i][y + j] for i in range(up, down + 1)
-                    for j in range(left, right + 1))
-                self.tiles[x][y].neighbours.remove(self.tiles[x][y])
+        for tile in self.tiles:
+            tile.neighbours = set(
+                self.get_tile(tile.x + i, tile.y + j) for i in (-1, 0, 1)
+                for j in (-1, 0, 1))
+            tile.neighbours.remove(tile)
+            tile.neighbours.discard(None)
 
     def init(self):
         """Initialize the board."""
-        self.tiles: list[list[Tile]] = [
-            [Tile(x, y) for y in range(self.width)] for x in range(self.height)
+        self.tiles: list[Tile] = [
+            Tile(x, y) for x in range(self.height) for y in range(self.width)
         ]  # tiles
         self.first: bool = True
         self.finish: bool = False
@@ -43,108 +46,100 @@ class Board(object):
 
         self.set_neighbours()
 
-    def set_mines(self, x, y):
+    def set_mines(self, index):
         """Set mines for the board"""
         if self.upk:
             return
-        mine_field = [(i, j) for j in range(self.width)
-                      for i in range(self.height) if (i, j) != (x, y)]
+        mine_field = [i for i in range(self.tile_count) if i != index]
         shuffle(mine_field)  # shuffle the field
 
-        for u, v in mine_field[:self.mines]:
-            self.tiles[u][v].set_mine()  # toggle mine value
+        for i in mine_field[:self.mines]:
+            self.tiles[i].set_mine()  # toggle mine value
 
-        self.tiles[x][y].set_value()
-        for u, v in mine_field[self.mines:]:
-            self.tiles[u][v].set_value()  # calculate normal value
+        self.tiles[index].set_value()
+        for i in mine_field[self.mines:]:
+            self.tiles[i].set_value()  # calculate normal value
 
     def init_upk(self):
         self.upk = True
-        for x in range(self.height):
-            for y in range(self.width):
-                self.tiles[x][y].recover()
+        for tile in self.tiles:
+            tile.recover()
         self.first = True
         self.finish = False
         self.blast = False
 
 
     def finish_check(self):
-        for x in range(self.height):
-            for y in range(self.width):
-                if self.tiles[x][y].covered and not self.tiles[x][y].is_mine():
-                    return False
+        for tile in self.tiles:
+            if tile.covered and not tile.is_mine():
+                return False
         self.finish = True
-        for x in range(self.height):
-            for y in range(self.width):
-                self.tiles[x][y].update_finish()
+        for tile in self.tiles:
+            tile.update_finish()
         return True
 
     def blast_check(self):
-        for x in range(self.height):
-            for y in range(self.width):
-                if not self.tiles[x][y].covered and self.tiles[x][y].is_mine():
-                    self.blast = True
+        for tile in self.tiles:
+            if not tile.covered and tile.is_mine():
+                self.blast = True
         if self.blast:
-            for x in range(self.height):
-                for y in range(self.width):
-                    self.tiles[x][y].update_blast()
+            for tile in self.tiles:
+                tile.update_blast()
         return self.blast
 
     def operate(func):
         def inner(self, x, y):
             if self.blast or self.finish:
                 return
-            for i in range(self.height):
-                for j in range(self.width):
-                    self.tiles[i][j].unhold()
+            for tile in self.tiles:
+                tile.unhold()
             if self.in_board(x, y):
-                func(self, x, y)
+                func(self, self.xy_index(x, y))
             if not self.finish_check() and not self.blast_check():
-                for i in range(self.height):
-                    for j in range(self.width):
-                        self.tiles[i][j].update()
+                for tile in self.tiles:
+                    tile.update()
         return inner
 
     @operate
-    def left(self, x, y):
+    def left(self, index):
         if self.first:
-            self.set_mines(x, y)
+            self.set_mines(index)
             self.first = False
         if self.opts["bfs"]:
-            self.tiles[x][y].BFS_open()
+            self.tiles[index].BFS_open()
         else:
-            self.tiles[x][y].open()
+            self.tiles[index].open()
 
     @operate
-    def right(self, x, y):
+    def right(self, index):
         if not self.opts["nf"]:
             if self.opts["ez_flag"]:
-                self.tiles[x][y].easy_flag()
+                self.tiles[index].easy_flag()
             else:
-                self.tiles[x][y].flag()
+                self.tiles[index].flag()
 
     @operate
-    def double(self, x, y):
+    def double(self, index):
         if not self.opts["nf"]:
             if self.opts["bfs"]:
-                self.tiles[x][y].BFS_double()
+                self.tiles[index].BFS_double()
             else:
-                self.tiles[x][y].double()
+                self.tiles[index].double()
 
     @operate
-    def left_hold(self, x, y):
-        self.tiles[x][y].left_hold()
+    def left_hold(self, index):
+        self.tiles[index].left_hold()
 
     @operate
-    def double_hold(self, x, y):
+    def double_hold(self, index):
         if not self.opts["nf"]:
-            self.tiles[x][y].double_hold()
+            self.tiles[index].double_hold()
 
     def output(self):
-        return [[self.tiles[x][y].status for y in range(self.width)]
+        return [[self.get_tile(x, y).status for y in range(self.width)]
                 for x in range(self.height)]
 
     def __repr__(self):
         return '\n'.join(''.join(
-            str(self.tiles[x][y].status) for y in range(self.width))
+            str(self.get_tile(x, y).status) for y in range(self.width))
                          for x in range(self.height)) + '\n'
