@@ -90,15 +90,8 @@ class Tile(object):
         for t in self.get_neighbours():
             t.left_hold()
 
-    # def double_unhold(self):
-    #     """Change status when unholding the left and right mouse key."""
-    #     self.unhold()
-    #     for t in self.get_neighbours():
-    #         t.unhold()
-
     def basic_open(self):
         """Handle basic opening."""
-        # self.unhold()
         if self.flagged or not self.covered:
             return set()
         self.covered = False
@@ -118,7 +111,6 @@ class Tile(object):
 
     def double(self):
         """Handle chording."""
-        # self.double_unhold()
         if not self.covered and self.value == sum(
                 1 for t in self.get_neighbours() if t.flagged):
             for t in self.get_neighbours():
@@ -126,7 +118,6 @@ class Tile(object):
 
     def basic_BFS_open(self):
         """Handle basic open with BFS."""
-        # self.unhold()
         if self.flagged or not self.covered:
             return set()
         self.covered = False
@@ -148,7 +139,6 @@ class Tile(object):
 
     def BFS_double(self):
         """Handle chording with BFS."""
-        # self.double_unhold()
         if not self.covered and self.value == sum(
                 1 for t in self.get_neighbours() if t.flagged):
             for t in self.get_neighbours():

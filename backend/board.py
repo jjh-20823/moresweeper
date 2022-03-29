@@ -102,13 +102,11 @@ class Board(object):
             if not self.finish_check() and not self.blast_check():
                 for i in range(self.height):
                     for j in range(self.width):
-                        # self.tiles[x][y].unhold()
                         self.tiles[i][j].update()
         return inner
 
     @operate
     def left(self, x, y):
-        # self.tiles[x][y].left_unhold()
         if self.first:
             self.set_mines(x, y)
             self.first = False
@@ -127,7 +125,6 @@ class Board(object):
 
     @operate
     def double(self, x, y):
-        # self.tiles[x][y].double_unhold()
         if not self.opts["nf"]:
             if self.opts["bfs"]:
                 self.tiles[x][y].BFS_double()
@@ -136,17 +133,11 @@ class Board(object):
 
     @operate
     def left_hold(self, x, y):
-        # for i in range(self.height):
-        #     for j in range(self.width):
-        #         self.tiles[i][j].unhold()
         self.tiles[x][y].left_hold()
 
     @operate
     def double_hold(self, x, y):
         if not self.opts["nf"]:
-            # for i in range(self.height):
-            #     for j in range(self.width):
-            #         self.tiles[i][j].unhold()
             self.tiles[x][y].double_hold()
 
     def output(self):
