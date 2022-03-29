@@ -1,11 +1,12 @@
 from options import load_options
-from board import Board
+from backend.board import Board
 from resources import get_skin
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QPainter, QMouseEvent
-f = lambda:0
-class boardUI (QtWidgets.QLabel):
+
+
+class boardUI(QtWidgets.QLabel):
 
     left_hold = pyqtSignal(int, int)
     double_hold = pyqtSignal(int, int)
@@ -17,19 +18,19 @@ class boardUI (QtWidgets.QLabel):
     drag = pyqtSignal(QMouseEvent)
 
     def __init__(self, parent=None):
-        super (boardUI, self).__init__ (parent)
+        super(boardUI, self).__init__(parent)
         self.setMouseTracking(True)
         self.init_board()
-    
+
     def init_board(self):
-        self.board = Board()
+        self.board = Board(load_options("game_style"))
         self.height, self.width = self.board.height, self.board.width
         self.opts = load_options("UI")
 
         self.tile_size = self.opts["size"]
         self.tile_maps = get_skin(self.opts["skin"], self.opts["size"])
-        
-        self.doubled = False # hold L, click R, then the release of L should be ignored
+
+        self.doubled = False  # hold L, click R, then the release of L should be ignored
 
         self.left_hold.connect(self.board.left_hold)
         self.double_hold.connect(self.board.double_hold)
@@ -46,7 +47,8 @@ class boardUI (QtWidgets.QLabel):
         temp = self.board.output()
         for x in range(self.height):
             for y in range(self.width):
-                painter.drawPixmap(y * size, x * size, self.tile_maps[temp[x][y]])
+                painter.drawPixmap(y * size, x * size,
+                                   self.tile_maps[temp[x][y]])
         painter.end()
 
     def resize(self, new_size):
@@ -54,7 +56,8 @@ class boardUI (QtWidgets.QLabel):
         # self.update()
 
     def mousePressEvent(self, event):
-        y_axis, x_axis = event.localPos().x() // self.tile_size, event.localPos().y() // self.tile_size
+        y_axis, x_axis = event.localPos().x(
+        ) // self.tile_size, event.localPos().y() // self.tile_size
         signal = int(event.buttons()) % 4
         if signal == 1:
             self.left_hold.emit(x_axis, y_axis)
@@ -69,7 +72,8 @@ class boardUI (QtWidgets.QLabel):
         self.update()
 
     def mouseReleaseEvent(self, event):
-        y_axis, x_axis = event.localPos().x() // self.tile_size, event.localPos().y() // self.tile_size
+        y_axis, x_axis = event.localPos().x(
+        ) // self.tile_size, event.localPos().y() // self.tile_size
         signal = int(event.buttons()) % 4
         if signal == 1 or signal == 2:
             self.double.emit(x_axis, y_axis)
