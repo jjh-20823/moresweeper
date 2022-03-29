@@ -25,7 +25,7 @@ class Tile(object):
 
     def __repr__(self) -> str:
         """Print a tile."""
-        return 'Tile: ({}, {}) \n'.format(self.x, self.y)
+        return f'Tile[v: {self.value}]: (x: {self.x}, y: {self.y})'
 
     def set_mine(self):
         """Set a tile with a mine."""
@@ -33,15 +33,21 @@ class Tile(object):
 
     def is_mine(self) -> bool:
         """Judge whether the tile is a mine by its value."""
-        return self.value == -1
+        return self.value == Tile.MINE
 
     def set_value(self):
         """Set a tile with a value."""
         if self.is_mine():
             return
-        self.value = sum(1 for t in self.neighbours if t.is_mine())
+
+        # calculate the value of a tile
+        value = 0
+        for t in self.get_neighbours():
+            value += (t.is_mine())
+        self.value = value
 
     def recover(self):
+        """Recover the status of the tile."""
         self.flagged = False  # flag indicator
         self.covered = True  # cover indicator
         self.down = False  # pressed indicator
