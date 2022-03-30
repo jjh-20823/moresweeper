@@ -95,7 +95,7 @@ class Board(object):
                 tile.unhold()
             if self.in_board(x, y):
                 func(self, self.xy_index(x, y))
-            if not self.finish_check() and not self.blast_check():
+            if not self.blast_check() and not self.finish_check():
                 for tile in self.tiles:
                     tile.update()
         return inner
