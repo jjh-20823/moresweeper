@@ -1,4 +1,3 @@
-from turtle import left
 from options import load_options
 from backend.board import Board
 from resources import get_skin

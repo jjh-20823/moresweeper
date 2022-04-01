@@ -59,15 +59,25 @@ class Tile(object):
 
     def update(self):
         """Update status of a tile."""
-        self.status = Tile.FLAGGED if self.flagged else Tile.DOWN if self.down else Tile.COVERED if self.covered else self.value
-        return self.status
+        if self.flagged:
+            self.status = Tile.FLAGGED
+            return
+
+        if self.down:
+            self.status = Tile.DOWN
+            return
+
+        if self.covered:
+            self.status = Tile.COVERED
+            return
+
+        self.status = self.value
 
     def update_finish(self):
         """Update status of a tile after finishing a game."""
         self.update()
         if not self.flagged and self.is_mine():
             self.status = Tile.UNFLAGGED
-        return self.status
 
     def update_blast(self):
         """Update status of a tile after failing a game."""
@@ -78,7 +88,6 @@ class Tile(object):
             self.status = Tile.BLAST
         elif not self.flagged and self.is_mine():
             self.status = Tile.MINE
-        return self.status
 
     def left_hold(self):
         """Change status when holding the left mouse key."""

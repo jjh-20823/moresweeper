@@ -47,7 +47,7 @@ class Board(object):
         self.set_neighbours()
 
     def set_mines(self, index):
-        """Set mines for the board"""
+        """Set mines for the board."""
         if self.upk:
             return
         mine_field = [i for i in range(self.tile_count) if i != index]
@@ -61,13 +61,13 @@ class Board(object):
             self.tiles[i].set_value()  # calculate normal value
 
     def init_upk(self):
+        """Toggle UPK mode."""
         self.upk = True
         for tile in self.tiles:
             tile.recover()
         self.first = True
         self.finish = False
         self.blast = False
-
 
     def finish_check(self):
         for tile in self.tiles:
