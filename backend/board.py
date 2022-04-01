@@ -114,7 +114,7 @@ class Board(object):
     def right(self, index):
         if not self.opts["nf"]:
             if self.opts["ez_flag"]:
-                self.tiles[index].easy_flag()
+                self.tiles[index].flag(easy_flag=True)
             else:
                 self.tiles[index].flag()
 

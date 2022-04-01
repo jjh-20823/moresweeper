@@ -150,20 +150,15 @@ class Tile(object):
             for t in self.get_neighbours():
                 t.BFS_open()
 
-    def flag(self):
-        """Handle flagging."""
+    def flag(self, easy_flag: bool = False):
+        """Handle flagging and easy flagging."""
         if self.flagged:
             self.flagged = False
         elif self.covered:
             self.flagged = True
 
-    def easy_flag(self):
-        """Handle easy flagging."""
-        if self.flagged:
-            self.flagged = False
-        elif self.covered:
-            self.flagged = True
-        elif self.value == sum(1 for t in self.get_neighbours() if t.covered):
+        if easy_flag and self.value == sum(
+                1 for t in self.get_neighbours() if t.covered):
             for t in self.get_neighbours():
                 if t.covered:
                     t.flagged = True
