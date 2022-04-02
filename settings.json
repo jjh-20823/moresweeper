@@ -5,7 +5,7 @@
         "width": 10,
         "mines": 9,
         "bfs": false,
-        "ez_flag": true,
+        "easy_flag": true,
         "nf": false
         
     }, 
