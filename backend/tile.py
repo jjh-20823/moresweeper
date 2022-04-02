@@ -29,22 +29,17 @@ class Tile(object):
 
     def set_mine(self):
         """Set a tile with a mine."""
-        self.value = -1
+        self.value = Tile.MINE
+        
+        # set the value of a mine's neighbour
+        # this will simplify board construction process
+        for t in self.get_neighbours():
+            if not t.is_mine():
+                t.value += 1  # update a neighbour's value
 
     def is_mine(self) -> bool:
         """Judge whether the tile is a mine by its value."""
         return self.value == Tile.MINE
-
-    def set_value(self):
-        """Set a tile with a value."""
-        if self.is_mine():
-            return
-
-        # calculate the value of a tile
-        value = 0
-        for t in self.get_neighbours():
-            value += (t.is_mine())
-        self.value = value
 
     def recover(self):
         """Recover the status of the tile."""
