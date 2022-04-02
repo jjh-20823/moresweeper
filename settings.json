@@ -1,9 +1,9 @@
 {
     "game_style": {
         "mode": 3,
-        "height": 6,
-        "width": 10,
-        "mines": 9,
+        "height": 80,
+        "width": 80,
+        "mines": 999,
         "bfs": false,
         "easy_flag": true,
         "nf": false
