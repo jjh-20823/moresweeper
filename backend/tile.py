@@ -162,6 +162,7 @@ class Tile(object):
         if not self.covered and self.value == sum(
                 1 for t in self.get_neighbours() if t.flagged):
             return set.union(*(t.BFS_open() for t in self.get_neighbours()))
+        return set()
 
     def flag(self, easy_flag: bool = False):
         """Handle flagging and easy flagging."""

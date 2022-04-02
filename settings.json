@@ -3,14 +3,14 @@
         "mode": 3,
         "height": 80,
         "width": 80,
-        "mines": 999,
-        "bfs": false,
+        "mines": 10,
+        "bfs": true,
         "easy_flag": true,
         "nf": false
         
     }, 
     "UI": {
         "skin": "default", 
-        "size": 32
+        "size": 24
     }
 }

@@ -6,7 +6,7 @@ from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QPainter, QMouseEvent
 
 
-class boardUI(QtWidgets.QLabel):
+class boardUI(QtWidgets.QWidget):
 
     left_hold = pyqtSignal(int, int)
     double_hold = pyqtSignal(int, int)
@@ -19,6 +19,7 @@ class boardUI(QtWidgets.QLabel):
 
     def __init__(self, parent=None):
         super(boardUI, self).__init__(parent)
+        self.setAttribute(Qt.WA_OpaquePaintEvent, True)
         self.signals = [
             self.left_hold, self.double_hold, self.left, self.right,
             self.double, self.drag
@@ -51,17 +52,17 @@ class boardUI(QtWidgets.QLabel):
         super().paintEvent(event)
         painter = QPainter()
         painter.begin(self)
+        # painter.setCompositionMode(QPainter.CompositionMode_ColorBurn)
         size = self.tile_size
         temp = self.board.output()
-        for x in range(self.height):
-            for y in range(self.width):
-                painter.drawPixmap(y * size, x * size,
-                                   self.tile_maps[temp[x][y]])
+        for x, y, status in temp:
+            painter.drawPixmap(y * size, x * size,
+                                self.tile_maps[status])
         painter.end()
 
     def resize(self, new_size):
         self.tile_maps = get_skin(self.opts["skin"], new_size)
-        # self.update()
+        self.update()
 
     def mousePressEvent(self, event):
         y_axis, x_axis = event.localPos().x(

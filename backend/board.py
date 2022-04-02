@@ -39,6 +39,7 @@ class Board(object):
         self.tiles: list[Tile] = [
             Tile(x, y) for x in range(self.height) for y in range(self.width)
         ]  # tiles
+        self.need_to_update: list[Tile] = self.tiles.copy()
         self.first: bool = True
         self.finish: bool = False
         self.blast: bool = False
@@ -63,6 +64,7 @@ class Board(object):
         self.upk = True
         for tile in self.tiles:
             tile.recover()
+        self.need_to_update = self.tiles.copy()
         self.first = True
         self.finish = False
         self.blast = False
@@ -80,6 +82,7 @@ class Board(object):
         self.finish = True
         for tile in self.tiles:
             tile.update_finish()
+        self.need_to_update = self.tiles.copy()
         return True
 
     def blast_check(self):
@@ -89,6 +92,7 @@ class Board(object):
         if self.blast:
             for tile in self.tiles:
                 tile.update_blast()
+            self.need_to_update = self.tiles.copy()
         return self.blast
 
     def operate(func):
@@ -98,12 +102,19 @@ class Board(object):
                 return
             for tile in self.tiles:
                 tile.unhold()
+            changed_tiles = set()
             if self.in_board(x, y):
-                result, button = func(self, self.xy_index(x, y))
-                self.counter.update_ce_cl(result, button)
+                changed_tiles, button = func(self, self.xy_index(x, y))
+                self.counter.update_ce_cl(changed_tiles, button)
+            changed_tiles |= set(
+                self.get_tile(x + i, y + j) for i in range(-2, 3)
+                for j in range(-2, 3))
+            changed_tiles.discard(None)
             if not self.blast_check() and not self.finish_check():
-                for tile in self.tiles:
+                for tile in changed_tiles:
+                # for tile in self.tiles:
                     tile.update()
+                self.need_to_update = changed_tiles
 
         return inner
 
@@ -144,8 +155,9 @@ class Board(object):
         return set(), Counter.OTHERS
 
     def output(self):
-        return [[self.get_tile(x, y).status for y in range(self.width)]
-                for x in range(self.height)]
+        return [(t.x, t.y, t.status) for t in self.need_to_update]
+        # [[self.get_tile(x, y).status for y in range(self.width)]
+        #         for x in range(self.height)]
 
     def __repr__(self):
         return '\n'.join(''.join(
