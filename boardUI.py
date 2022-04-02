@@ -7,6 +7,7 @@ from PyQt5.QtGui import QPainter, QMouseEvent
 
 
 class boardUI(QtWidgets.QWidget):
+    """UI of the board."""
 
     left_hold = pyqtSignal(int, int)
     double_hold = pyqtSignal(int, int)
@@ -56,8 +57,7 @@ class boardUI(QtWidgets.QWidget):
         size = self.tile_size
         temp = self.board.output()
         for x, y, status in temp:
-            painter.drawPixmap(y * size, x * size,
-                                self.tile_maps[status])
+            painter.drawPixmap(y * size, x * size, self.tile_maps[status])
         painter.end()
 
     def resize(self, new_size):
@@ -97,3 +97,9 @@ class boardUI(QtWidgets.QWidget):
         signal = int(event.buttons()) % 4
         if signal != 2:
             self.drag.emit(event)
+
+    def run(self):
+        """Run the app."""
+        self.setGeometry(135, 177, self.width * self.tile_size,
+                         self.height * self.tile_size)
+        self.show()

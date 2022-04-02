@@ -112,7 +112,6 @@ class Board(object):
             changed_tiles.discard(None)
             if not self.blast_check() and not self.finish_check():
                 for tile in changed_tiles:
-                # for tile in self.tiles:
                     tile.update()
                 self.need_to_update = changed_tiles
 
