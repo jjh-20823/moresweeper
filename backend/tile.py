@@ -78,12 +78,14 @@ class Tile(object):
         """Change status when holding the left mouse key."""
         if self.covered and not self.flagged:
             self.down = True
+        return set()
 
     def double_hold(self):
         """Change status when holding the left and right mouse key."""
         self.left_hold()
         for t in self.get_neighbours():
             t.left_hold()
+        return set()
 
     def unhold(self):
         """Change status when unholding a single mouse key."""
@@ -164,16 +166,18 @@ class Tile(object):
 
     def easy_flag(self):
         """Handle easy flagging."""
-        temp_neighbours = set(t for t in self.get_neighbours() if t.covered)
         if self.flagged:
             self.flagged = False
             return set((self, ))
         elif self.covered:
             self.flagged = True
             return set((self, ))
-        elif self.value == len(temp_neighbours):
-            for t in temp_neighbours:
-                t.flagged = True
-            return temp_neighbours
         else:
-            return set()
+            covered_neighbours = set(t for t in self.get_neighbours() if t.covered)
+            unflagged_neighbours = set(t for t in self.get_neighbours() if t.covered and not t.flagged)
+            if self.value == len(covered_neighbours):
+                for t in covered_neighbours:
+                    t.flagged = True
+                return unflagged_neighbours
+            else:
+                return set()

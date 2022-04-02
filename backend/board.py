@@ -68,6 +68,7 @@ class Board(object):
         self.first = True
         self.finish = False
         self.blast = False
+        self.counter = Counter()
 
     def first_click(self, index):
         self.set_mines(index)
@@ -99,7 +100,8 @@ class Board(object):
             for tile in self.tiles:
                 tile.unhold()
             if self.in_board(x, y):
-                func(self, self.xy_index(x, y))
+                result, button = func(self, self.xy_index(x, y))
+                self.counter.update_ce_cl(result, button)
             if not self.blast_check() and not self.finish_check():
                 for tile in self.tiles:
                     tile.update()
@@ -110,34 +112,36 @@ class Board(object):
         if self.first:
             self.first_click(index)
         if self.opts["bfs"]:
-            self.tiles[index].BFS_open()
+            return self.tiles[index].BFS_open(), Counter.LEFT
         else:
-            self.tiles[index].open()
+            return self.tiles[index].open(), Counter.LEFT
 
     @operate
     def right(self, index):
         if not self.opts["nf"]:
-            if self.opts["ez_flag"]:
-                self.tiles[index].easy_flag()
+            if self.opts["easy_flag"]:
+                return self.tiles[index].easy_flag(), Counter.RIGHT
             else:
-                self.tiles[index].flag()
+                return self.tiles[index].flag(), Counter.RIGHT
 
     @operate
     def double(self, index):
         if not self.opts["nf"]:
             if self.opts["bfs"]:
-                self.tiles[index].BFS_double()
+                return self.tiles[index].BFS_double(), Counter.DOUBLE
             else:
-                self.tiles[index].double()
+                return self.tiles[index].double(), Counter.DOUBLE
 
     @operate
     def left_hold(self, index):
         self.tiles[index].left_hold()
+        return set(), Counter.OTHERS
 
     @operate
     def double_hold(self, index):
         if not self.opts["nf"]:
             self.tiles[index].double_hold()
+        return set(), Counter.OTHERS
 
     def output(self):
         return [[self.get_tile(x, y).status for y in range(self.width)]
