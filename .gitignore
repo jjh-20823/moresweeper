@@ -205,3 +205,6 @@ typings/
 
 # Serverless directories
 .serverless
+
+# User settings
+settings.json
