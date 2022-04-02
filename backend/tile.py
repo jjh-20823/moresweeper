@@ -79,16 +79,16 @@ class Tile(object):
         if self.covered and not self.flagged:
             self.down = True
 
-    def unhold(self):
-        """Change status when unholding a single mouse key."""
-        if not self.flagged:
-            self.down = False
-
     def double_hold(self):
         """Change status when holding the left and right mouse key."""
         self.left_hold()
         for t in self.get_neighbours():
             t.left_hold()
+
+    def unhold(self):
+        """Change status when unholding a single mouse key."""
+        if not self.flagged:
+            self.down = False
 
     def basic_open(self):
         """Handle basic opening."""
@@ -96,25 +96,29 @@ class Tile(object):
             return set()
         self.covered = False
         if not self.is_mine() and self.value == 0:
-            return self.get_neighbours()
-        return set()
+            return self.get_neighbours() | set((self, ))
+        return set((self, ))
 
     def open(self):
         """Handle normal opening."""
         search = set((self, ))
         searched = set()
+        changed = set()
         while (search):
             t = search.pop()
             searched.add(t)
-            search = search | t.basic_open() - searched
-        return searched
+            temp = t.basic_open()
+            if temp:
+                search = search | temp - searched
+                changed.add(t)
+        return changed
 
     def double(self):
         """Handle chording."""
         if not self.covered and self.value == sum(
                 1 for t in self.get_neighbours() if t.flagged):
-            for t in self.get_neighbours():
-                t.open()
+            return set.union(*(t.open() for t in self.get_neighbours()))                
+        return set()
 
     def basic_BFS_open(self):
         """Handle basic open with BFS."""
@@ -124,40 +128,52 @@ class Tile(object):
         if not self.is_mine() and (self.value == sum(
                 1 for t in self.get_neighbours() if t.flagged)
                                    or self.value == 0):
-            return self.get_neighbours()
-        return set()
+            return self.get_neighbours() | set((self, ))
+        return set((self, ))
 
     def BFS_open(self):
         """Handle normal open with BFS."""
         search = set((self, ))
         searched = set()
+        changed = set()
         while (search):
             t = search.pop()
             searched.add(t)
-            search = search | t.basic_BFS_open() - searched
-        return searched
+            temp = t.basic_BFS_open()
+            if temp:
+                search = search | temp - searched
+                changed.add(t)
+        return changed
 
     def BFS_double(self):
         """Handle chording with BFS."""
         if not self.covered and self.value == sum(
                 1 for t in self.get_neighbours() if t.flagged):
-            for t in self.get_neighbours():
-                t.BFS_open()
+            return set.union(*(t.BFS_open() for t in self.get_neighbours()))
 
     def flag(self):
         """Handle flagging."""
         if self.flagged:
             self.flagged = False
+            return set((self, ))
         elif self.covered:
             self.flagged = True
+            return set((self, ))
+        else:
+            return set()
 
     def easy_flag(self):
         """Handle easy flagging."""
+        temp_neighbours = set(t for t in self.get_neighbours() if t.covered)
         if self.flagged:
             self.flagged = False
+            return set((self, ))
         elif self.covered:
             self.flagged = True
-        elif self.value == sum(1 for t in self.get_neighbours() if t.covered):
-            for t in self.get_neighbours():
-                if t.covered:
-                    t.flagged = True
+            return set((self, ))
+        elif self.value == len(temp_neighbours):
+            for t in temp_neighbours:
+                t.flagged = True
+            return temp_neighbours
+        else:
+            return set()
