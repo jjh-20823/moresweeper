@@ -7,13 +7,13 @@ setting_path = ".\settings.json"
 #         self.opts = {
 #             "game": {
 #                 "mode": 3,
-#                 "height": 16, 
+#                 "height": 16,
 #                 "width": 30,
 #                 "mines": 99,
-#             }, 
+#             },
 #             "game_style": {
-#                 "bfs": False, 
-#                 "ez_flag": False, 
+#                 "bfs": False,
+#                 "ez_flag": False,
 #                 "nf": False
 #             }
 #         }
@@ -28,6 +28,7 @@ setting_path = ".\settings.json"
 
 # options = Options()
 
-def load_options(key = None):
+
+def load_options(key=None):
     with open(setting_path, "r") as load_f:
         return json.load(load_f)[key] if key else json.load(load_f)

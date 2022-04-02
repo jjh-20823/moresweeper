@@ -43,6 +43,7 @@ class Board(object):
         self.finish: bool = False
         self.blast: bool = False
         self.upk: bool = False
+        self.counter: Counter = Counter()
 
         self.set_neighbours()
 
@@ -65,6 +66,11 @@ class Board(object):
         self.first = True
         self.finish = False
         self.blast = False
+
+    def first_click(self, index):
+        self.set_mines(index)
+        self.counter.start_timer()
+        self.first = False
 
     def finish_check(self):
         for tile in self.tiles:
@@ -102,8 +108,7 @@ class Board(object):
     @operate
     def left(self, index):
         if self.first:
-            self.set_mines(index)
-            self.first = False
+            self.first_click(index)
         if self.opts["bfs"]:
             self.tiles[index].BFS_open()
         else:

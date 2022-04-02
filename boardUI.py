@@ -19,14 +19,20 @@ class boardUI(QtWidgets.QLabel):
 
     def __init__(self, parent=None):
         super(boardUI, self).__init__(parent)
-        self.signals = [self.left_hold, self.double_hold, self.left, self.right, self.double, self.drag]
+        self.signals = [
+            self.left_hold, self.double_hold, self.left, self.right,
+            self.double, self.drag
+        ]
         self.setMouseTracking(True)
         self.init_board()
 
     def init_board(self):
         self.board = Board(load_options("game_style"))
         self.height, self.width = self.board.height, self.board.width
-        self.slots = [self.board.left_hold, self.board.double_hold, self.board.left, self.board.right, self.board.double, self.mousePressEvent]
+        self.slots = [
+            self.board.left_hold, self.board.double_hold, self.board.left,
+            self.board.right, self.board.double, self.mousePressEvent
+        ]
 
         self.opts = load_options("UI")
         self.tile_size = self.opts["size"]
@@ -67,7 +73,7 @@ class boardUI(QtWidgets.QLabel):
             self.right.emit(x_axis, y_axis)
         elif signal == 3:
             self.double_hold.emit(x_axis, y_axis)
-            
+
         if int(event.buttons()) == 4:
             self = self.board.init_upk()
             return
