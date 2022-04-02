@@ -8,13 +8,13 @@ from random import shuffle
 class Board(object):
     """Board: A number of tiles."""
 
-    def __init__(self, options: dict):
+    def __init__(self, settings: any):
         """Initialize a board."""
-        self.opts: dict = options  # load options
-        self.height: int = self.opts["height"]  # height
-        self.width: int = self.opts["width"]  # width
+        self.opts: any = settings
+        self.height: int = self.opts.height  # height
+        self.width: int = self.opts.width  # width
         self.tile_count: int = self.height * self.width
-        self.mines: int = self.opts["mines"]  # mines
+        self.mines: int = self.opts.mines  # mines
         self.init()
 
     def xy_index(self, x, y):
@@ -121,23 +121,23 @@ class Board(object):
     def left(self, index):
         if self.first:
             self.first_click(index)
-        if self.opts["bfs"]:
+        if self.opts.bfs:
             return self.tiles[index].BFS_open(), Counter.LEFT
         else:
             return self.tiles[index].open(), Counter.LEFT
 
     @operate
     def right(self, index):
-        if not self.opts["nf"]:
-            if self.opts["easy_flag"]:
+        if not self.opts.nf:
+            if self.opts.easy_flag:
                 return self.tiles[index].flag(easy_flag=True), Counter.RIGHT
             else:
                 return self.tiles[index].flag(), Counter.RIGHT
 
     @operate
     def double(self, index):
-        if not self.opts["nf"]:
-            if self.opts["bfs"]:
+        if not self.opts.nf:
+            if self.opts.bfs:
                 return self.tiles[index].BFS_double(), Counter.DOUBLE
             else:
                 return self.tiles[index].double(), Counter.DOUBLE
@@ -149,7 +149,7 @@ class Board(object):
 
     @operate
     def double_hold(self, index):
-        if not self.opts["nf"]:
+        if not self.opts.nf:
             self.tiles[index].double_hold()
         return set(), Counter.OTHERS
 

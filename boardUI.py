@@ -1,4 +1,4 @@
-from options import load_options
+from settings import load_settings
 from backend.board import Board
 from resources import get_skin
 from PyQt5 import QtWidgets
@@ -29,16 +29,17 @@ class boardUI(QtWidgets.QWidget):
         self.init_board()
 
     def init_board(self):
-        self.board = Board(load_options("game_style"))
+        self.settings = load_settings()
+
+        self.board = Board(self.settings.game)
         self.height, self.width = self.board.height, self.board.width
         self.slots = [
             self.board.left_hold, self.board.double_hold, self.board.left,
             self.board.right, self.board.double, self.mousePressEvent
         ]
 
-        self.opts = load_options("UI")
-        self.tile_size = self.opts["size"]
-        self.tile_maps = get_skin(self.opts["skin"], self.opts["size"])
+        self.tile_size = self.settings.ui.size
+        self.tile_maps = get_skin(self.settings.ui.skin, self.settings.ui.size)
 
         self.doubled = False  # hold L, click R, then the release of L should be ignored
 
