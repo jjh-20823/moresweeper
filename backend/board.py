@@ -22,7 +22,7 @@ class Board(object):
 
     def in_board(self, x, y):
         return 0 <= x < self.height and 0 <= y < self.width
-    
+
     def get_tile(self, x, y):
         return self.tiles[self.xy_index(x, y)] if self.in_board(x, y) else None
 
@@ -48,20 +48,18 @@ class Board(object):
         self.set_neighbours()
 
     def set_mines(self, index):
-        """Set mines for the board"""
+        """Set mines for the board."""
         if self.upk:
-            return
+            return  # don't need to update the mine field when it is UPK mode
+
         mine_field = [i for i in range(self.tile_count) if i != index]
         shuffle(mine_field)  # shuffle the field
 
         for i in mine_field[:self.mines]:
             self.tiles[i].set_mine()  # toggle mine value
 
-        self.tiles[index].set_value()
-        for i in mine_field[self.mines:]:
-            self.tiles[i].set_value()  # calculate normal value
-
     def init_upk(self):
+        """Toggle UPK mode."""
         self.upk = True
         for tile in self.tiles:
             tile.recover()
@@ -94,6 +92,7 @@ class Board(object):
         return self.blast
 
     def operate(func):
+
         def inner(self, x, y):
             if self.blast or self.finish:
                 return
@@ -105,6 +104,7 @@ class Board(object):
             if not self.blast_check() and not self.finish_check():
                 for tile in self.tiles:
                     tile.update()
+
         return inner
 
     @operate
@@ -120,7 +120,7 @@ class Board(object):
     def right(self, index):
         if not self.opts["nf"]:
             if self.opts["easy_flag"]:
-                return self.tiles[index].easy_flag(), Counter.RIGHT
+                return self.tiles[index].flag(easy_flag=True), Counter.RIGHT
             else:
                 return self.tiles[index].flag(), Counter.RIGHT
 

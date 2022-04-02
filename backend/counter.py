@@ -15,12 +15,13 @@ class Counter():
         self.ce = {Counter.LEFT: 0, Counter.RIGHT: 0, Counter.DOUBLE: 0}
 
     def start_timer(self):
+        """Start the timer."""
         self.start_time = 0
 
     def update_ce_cl(self, result, button):
+        """Update statistics of ce(effective clicks) and cl(clicks)."""
         if button == Counter.OTHERS:
             return
         self.cl[button] += 1
         if result:
             self.ce[button] += 1
-        # print(self.cl, self.ce)
