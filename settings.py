@@ -28,7 +28,7 @@ class GameSettings(BaseSettings):
     mines: int = 99
     bfs: bool = False
     easy_flag: bool = False
-    nf: bool = True
+    nf: bool = False
 
     @validator('height', 'width')
     def check_height_width(cls, v: int):
