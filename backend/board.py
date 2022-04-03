@@ -133,6 +133,8 @@ class Board(object):
                 return self.tiles[index].flag(easy_flag=True), Counter.RIGHT
             else:
                 return self.tiles[index].flag(), Counter.RIGHT
+        else:
+            return set(), Counter.OTHERS
 
     @operate
     def double(self, index):
@@ -141,6 +143,8 @@ class Board(object):
                 return self.tiles[index].BFS_double(), Counter.DOUBLE
             else:
                 return self.tiles[index].double(), Counter.DOUBLE
+        else:
+            return set(), Counter.OTHERS
 
     @operate
     def left_hold(self, index):
