@@ -1,5 +1,5 @@
 from settings import load_settings
-from backend.board import Board
+from backend.game import Game
 from resources import get_skin
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal, Qt
@@ -31,11 +31,11 @@ class boardUI(QtWidgets.QWidget):
     def init_board(self):
         self.settings = load_settings()
 
-        self.board = Board(self.settings.game)
-        self.height, self.width = self.board.height, self.board.width
+        self.game = Game(self.settings.game)
+        self.height, self.width = self.game.board.height, self.game.board.width
         self.slots = [
-            self.board.left_hold, self.board.double_hold, self.board.left,
-            self.board.right, self.board.double, self.mousePressEvent
+            self.game.left_hold, self.game.double_hold, self.game.left,
+            self.game.right, self.game.double, self.mousePressEvent
         ]
 
         self.tile_size = self.settings.ui.size
@@ -56,7 +56,7 @@ class boardUI(QtWidgets.QWidget):
         painter.begin(self)
         # painter.setCompositionMode(QPainter.CompositionMode_ColorBurn)
         size = self.tile_size
-        temp = self.board.output()
+        temp = self.game.output()
         for x, y, status in temp:
             painter.drawPixmap(y * size, x * size, self.tile_maps[status])
         painter.end()
@@ -77,7 +77,7 @@ class boardUI(QtWidgets.QWidget):
             self.double_hold.emit(x_axis, y_axis)
 
         if int(event.buttons()) == 4:
-            self = self.board.init_upk()
+            self = self.game.init_upk()
             return
         self.update()
 
