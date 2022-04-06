@@ -1,7 +1,6 @@
 """Board: A number of tiles."""
 
 from .tile import Tile
-from .counter import Counter
 from random import shuffle
 
 
@@ -49,9 +48,9 @@ class Board(object):
 
         self.set_neighbours()
 
-    def set_mines(self, index):
+    def set_mines(self, x, y):
         """Set mines for the board."""
-        mine_field = [i for i in range(self.tile_count) if i != index]
+        mine_field = [i for i in range(self.tile_count) if i != self.xy_index(x, y)]
         shuffle(mine_field)  # shuffle the field
 
         for i in mine_field[:self.mines]:
@@ -62,7 +61,6 @@ class Board(object):
             tile.recover()
         self.finish = False
         self.blast = False
-        self.counter = Counter()
 
     def release(self):
         for tile in self.tiles:
@@ -84,14 +82,45 @@ class Board(object):
     def end_check(self):
         return self.blast_check() or self.finish_check()
 
-    def end(self):
-        self.counter.end()
+    def board_operate(func):
 
-    def output(self, forced_whole_board = False):
-        if self.stable and not forced_whole_board:
-            return [(t.x, t.y, t.status) for t in self.recently_updated]
-        else:
-            return [(t.x, t.y, t.status) for t in self.tiles]
+        def inner(self, x: int, y: int, *args):
+            self.release()
+            changed_tiles = set()
+            if self.in_board(x, y):
+                changed_tiles = func(self, self.xy_index(x, y), *args)
+            changed_tiles |= self.get_tiles(
+                ((x + i, y + j) for i in range(-2, 3)
+                for j in range(-2, 3)))
+            self.end_check()
+            return changed_tiles
+
+        return inner
+
+    @board_operate
+    def left(self, index, BFS):
+        return self.tiles[index].open(BFS)
+
+    @board_operate
+    def right(self, index, easy_flag):
+       return self.tiles[index].flag(easy_flag=True)
+
+    @board_operate
+    def double(self, index, BFS):
+        return self.tiles[index].double(BFS)
+
+    @board_operate
+    def left_hold(self, index):
+        self.tiles[index].left_hold()
+        return set()
+
+    @board_operate
+    def double_hold(self, index):
+        self.tiles[index].double_hold()
+        return set()
+
+    def output(self):
+        return [(t.x, t.y, t.status) for t in self.tiles]
 
     # def __repr__(self):
     #     return '\n'.join(''.join(

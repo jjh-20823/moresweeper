@@ -56,7 +56,7 @@ class boardUI(QtWidgets.QWidget):
         painter.begin(self)
         # painter.setCompositionMode(QPainter.CompositionMode_ColorBurn)
         size = self.tile_size
-        temp = self.game.output()
+        temp = self.game.board_output()
         for x, y, status in temp:
             painter.drawPixmap(y * size, x * size, self.tile_maps[status])
         painter.end()

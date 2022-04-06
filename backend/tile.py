@@ -102,16 +102,28 @@ class Tile(object):
         if not self.flagged:
             self.down = False
 
-    def basic_open(self):
+    def basic_open(self, BFS: bool = False):
         """Handle basic opening."""
         if self.flagged or not self.covered:
             return set()
         self.covered = False
-        if not self.is_mine() and self.value == 0:
+        if not self.is_mine() and (
+            self.value == 0
+            or 
+            (
+                BFS
+                and 
+                self.value == sum(
+                    1 
+                    for t in self.get_neighbours()
+                    if t.flagged
+                )
+            )
+        ):
             return self.get_neighbours() | set((self, ))
         return set((self, ))
 
-    def open(self):
+    def open(self, BFS: bool = False):
         """Handle normal opening."""
         search = set((self, ))
         searched = set()
@@ -119,49 +131,17 @@ class Tile(object):
         while (search):
             t = search.pop()
             searched.add(t)
-            temp = t.basic_open()
+            temp = t.basic_open(BFS)
             if temp:
                 search = search | temp - searched
                 changed.add(t)
         return changed
 
-    def double(self):
+    def double(self, BFS: bool = False):
         """Handle chording."""
         if not self.covered and self.value == sum(
                 1 for t in self.get_neighbours() if t.flagged):
-            return set.union(*(t.open() for t in self.get_neighbours()))
-        return set()
-
-    def basic_BFS_open(self):
-        """Handle basic open with BFS."""
-        if self.flagged or not self.covered:
-            return set()
-        self.covered = False
-        if not self.is_mine() and (self.value == sum(
-                1 for t in self.get_neighbours() if t.flagged)
-                                   or self.value == 0):
-            return self.get_neighbours() | set((self, ))
-        return set((self, ))
-
-    def BFS_open(self):
-        """Handle normal open with BFS."""
-        search = set((self, ))
-        searched = set()
-        changed = set()
-        while (search):
-            t = search.pop()
-            searched.add(t)
-            temp = t.basic_BFS_open()
-            if temp:
-                search = search | temp - searched
-                changed.add(t)
-        return changed
-
-    def BFS_double(self):
-        """Handle chording with BFS."""
-        if not self.covered and self.value == sum(
-                1 for t in self.get_neighbours() if t.flagged):
-            return set.union(*(t.BFS_open() for t in self.get_neighbours()))
+            return set.union(*(t.open(BFS) for t in self.get_neighbours()))
         return set()
 
     def flag(self, easy_flag: bool = False):

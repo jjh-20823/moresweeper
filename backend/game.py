@@ -19,107 +19,100 @@ class Game(object):
         """Initialize the board."""
         self.board = Board(self.opts)
         self.first: bool = True
+        self.win: bool = False
+        self.lose: bool = False
         self.upk: bool = False
         self.stable: bool = False
         self.recently_updated: list[Tile] = self.board.tiles.copy()
         # self.holding: set(Tile) = set()
         # self.counter: Counter = Counter()
 
-    def set_mines(self, index):
+    def set_mines(self, x, y):
         """Set mines for the board."""
         if not self.upk:
-            self.board.set_mines(index)  # don't need to update the mine field when it is UPK mode
+            self.board.set_mines(x, y)  # don't need to update the mine field when it is UPK mode
         
     def init_upk(self):
         """Toggle UPK mode."""
-        self.upk = True
         self.board.recover()
+        self.first = True
+        self.win = False
+        self.lose = False
+        self.upk = True
         self.stable = False
         self.recently_updated = self.board.tiles.copy()
-        self.first = True
 
-    def first_click(self, index):
-        self.set_mines(index)
+    def start(self, x, y):
+        self.set_mines(x, y)
         # self.counter.start_timer()
         self.first = False
 
     def end(self):
-        self.stable = False
         if self.board.blast:
+            self.stable = False
+            self.lose = True
             for tile in self.board.tiles:
                 tile.update_blast()
-        else:
+        elif self.board.finish:
+            self.stable = False
+            self.win = True
             for tile in self.board.tiles:
                 tile.update_finish()
 
     def operate(func):
 
-        def inner(self, x, y):
-            if self.board.blast or self.board.finish:
+        def inner(self, x: float, y: float, *args):
+            if self.win or self.lose:
                 return
-            self.board.release()
-            changed_tiles = set()
-            if self.board.in_board(x, y):
-                changed_tiles, button = func(self, self.board.xy_index(int(x), int(y)))
-                # self.counter.update_ce_cl(changed_tiles, button)
-            changed_tiles |= self.board.get_tiles(
-                ((x + i, y + j) for i in range(-2, 3)
-                for j in range(-2, 3)))
-            if not self.board.end_check():
+            changed_tiles, button = func(self, int(x), int(y), *args) # The real operation
+            # self.update_Counter
+            # self.save_MouseTrack
+            # ...
+            if self.board.blast or self.board.finish:
+                self.end()
+            else:
                 self.stable = True
                 for tile in changed_tiles:
                     tile.update()
                 self.recently_updated = changed_tiles
-            else:
-                self.end()
 
         return inner
 
     @operate
-    def left(self, index):
+    def left(self, x, y):
         if self.first:
-            self.first_click(index)
-        if self.opts.bfs:
-            return self.board.tiles[index].BFS_open(), Counter.LEFT
-        else:
-            return self.board.tiles[index].open(), Counter.LEFT
+            self.start(x, y)
+        return self.board.left(x, y, self.opts.bfs), Counter.LEFT
 
     @operate
-    def right(self, index):
+    def right(self, x, y):
         if not self.opts.nf:
-            if self.opts.easy_flag:
-                return self.board.tiles[index].flag(easy_flag=True), Counter.RIGHT
-            else:
-                return self.board.tiles[index].flag(), Counter.RIGHT
+            return self.board.right(x, y, self.opts.easy_flag), Counter.RIGHT
         else:
             return set(), Counter.OTHERS
 
     @operate
-    def double(self, index):
+    def double(self, x, y):
         if not self.opts.nf:
-            if self.opts.bfs:
-                return self.board.tiles[index].BFS_double(), Counter.DOUBLE
-            else:
-                return self.board.tiles[index].double(), Counter.DOUBLE
+            return self.board.double(x, y, self.opts.bfs), Counter.DOUBLE
         else:
             return set(), Counter.OTHERS
 
     @operate
-    def left_hold(self, index):
-        self.board.tiles[index].left_hold()
-        return set(), Counter.OTHERS
+    def left_hold(self, x, y):
+        return self.board.left_hold(x, y), Counter.OTHERS
 
     @operate
-    def double_hold(self, index):
+    def double_hold(self, x, y):
         if not self.opts.nf:
-            self.board.tiles[index].double_hold()
+            return self.board.double_hold(x, y), Counter.OTHERS
         return set(), Counter.OTHERS
 
-    def output(self, forced_whole_board = False):
+    def board_output(self, forced_whole_board = False):
         if self.stable and not forced_whole_board:
             return [(t.x, t.y, t.status) for t in self.recently_updated]
         else:
-            return [(t.x, t.y, t.status) for t in self.board.tiles]
+            return self.board.output()
 
     # def __repr__(self):
     #     return '\n'.join(''.join(
