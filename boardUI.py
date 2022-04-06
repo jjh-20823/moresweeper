@@ -67,9 +67,9 @@ class boardUI(QtWidgets.QWidget):
 
     def mousePressEvent(self, event):
         y_axis, x_axis = event.localPos().x(
-        ) // self.tile_size, event.localPos().y() // self.tile_size
+        ) / self.tile_size, event.localPos().y() / self.tile_size
         signal = int(event.buttons()) % 4
-        if signal == 1:
+        if signal == 1 and not self.doubled:
             self.left_hold.emit(x_axis, y_axis)
         elif signal == 2:
             self.right.emit(x_axis, y_axis)
@@ -83,9 +83,9 @@ class boardUI(QtWidgets.QWidget):
 
     def mouseReleaseEvent(self, event):
         y_axis, x_axis = event.localPos().x(
-        ) // self.tile_size, event.localPos().y() // self.tile_size
+        ) / self.tile_size, event.localPos().y() / self.tile_size
         signal = int(event.buttons()) % 4
-        if signal == 1 or signal == 2:
+        if (signal == 1 and event.button() == Qt.RightButton) or (signal == 2 and event.button() == Qt.LeftButton):
             self.double.emit(x_axis, y_axis)
             self.doubled = True
         elif signal == 0:
