@@ -1,7 +1,10 @@
 """Board: A number of tiles."""
 
 from .tile import Tile
+from .stats import *
 from random import shuffle
+from copy import deepcopy
+from time import sleep
 
 
 class Board(object):
@@ -14,7 +17,7 @@ class Board(object):
         self.width: int = self.opts.width  # width
         self.tile_count: int = self.height * self.width
         self.mines: int = self.opts.mines  # mines
-        self.init()
+        self.init_tiles()
 
     def xy_index(self, x, y):
         return x * self.width + y
@@ -36,17 +39,24 @@ class Board(object):
                 ((tile.x + i, tile.y + j) for i in (-1, 0, 1)
                 for j in (-1, 0, 1)))
             tile.neighbours.remove(tile)
-            tile.neighbours.discard(None)
 
     def init(self):
         """Initialize the board."""
+        self.finish: bool = False
+        self.blast: bool = False
+        self.stats = [0 for _ in range(stats_count)]
+        self.marker = [
+            [] for _ in range(self.height) for __ in range(self.width)
+        ]
+        self.op_counter = [0 for _ in range(self.tile_count)]
+        self.is_counter = [0 for _ in range(self.tile_count)]
+
+    def init_tiles(self):
         self.tiles: list[Tile] = [
             Tile(x, y) for x in range(self.height) for y in range(self.width)
         ]  # tiles
-        self.finish: bool = False
-        self.blast: bool = False
-
         self.set_neighbours()
+        self.init()
 
     def set_mines(self, x, y):
         """Set mines for the board."""
@@ -55,12 +65,12 @@ class Board(object):
 
         for i in mine_field[:self.mines]:
             self.tiles[i].set_mine()  # toggle mine value
+        self.calc_basic_stats()
 
     def recover(self):
         for tile in self.tiles:
             tile.recover()
-        self.finish = False
-        self.blast = False
+        self.init()
 
     def release(self):
         for tile in self.tiles:
@@ -122,7 +132,57 @@ class Board(object):
     def output(self):
         return [(t.x, t.y, t.status) for t in self.tiles]
 
-    # def __repr__(self):
-    #     return '\n'.join(''.join(
-    #         str(self.get_tile(x, y).status) for y in range(self.width))
-    #                      for x in range(self.height)) + '\n'
+    # @staticmethod()
+    # def has_op(tiles: set[Tile]):
+    #     for t in tiles:
+    #         if t.value == 0 and t.covered:
+    #             return True
+    #     return False
+
+    # @staticmethod()
+    # def has_bv(tiles: set[Tile]):
+    #     for t in tiles:
+    #         if t.value != -1 and t.covered:
+    #             return True
+    #     return False
+
+    def calc_basic_stats(self):
+        temp_tiles = self.tiles
+        op_num, is_num = 1, -1
+        for t in temp_tiles:
+            if t.value == 0 and t.covered:
+                op = t.open(BFS=False, test_op=True)
+                print(t, op)
+                for tt in op:
+                    self.marker[self.xy_index(tt.x, tt.y)].append(op_num)
+                    self.op_counter[op_num] += 1
+                op_num += 1
+        self.stats[STATS.OP] = op_num - 1
+        self.stats[STATS.BBBV] = self.stats[STATS.OP]
+        for t in temp_tiles:
+            if t.value == -1:
+                t.flag()
+            elif t.value != -1 and t.covered:
+                self.stats[STATS.BBBV] += 1
+        for t in temp_tiles:
+            if t.value != -1 and t.covered:
+                is_ = t.open(BFS=True)
+                print(t, is_)
+                for tt in is_:
+                    self.marker[self.xy_index(tt.x, tt.y)].append(is_num)
+                    self.is_counter[is_num] += 1
+                is_num -= 1
+        self.stats[STATS.IS] = -1 - is_num
+        for tile in temp_tiles:
+            tile.recover()
+
+    def calc_in_game_stats(self):
+        ...
+
+    def calc_finish_stats(self):
+        ...
+
+    def __repr__(self):
+        return '\n'.join(''.join(
+            str(self.get_tile(x, y).status) for y in range(self.width))
+                         for x in range(self.height)) + '\n'

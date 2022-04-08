@@ -123,7 +123,7 @@ class Tile(object):
             return self.get_neighbours() | set((self, ))
         return set((self, ))
 
-    def open(self, BFS: bool = False):
+    def open(self, BFS: bool = False, test_op: bool = False):
         """Handle normal opening."""
         search = set((self, ))
         searched = set()
@@ -135,7 +135,7 @@ class Tile(object):
             if temp:
                 search = search | temp - searched
                 changed.add(t)
-        return changed
+        return changed if not test_op else searched
 
     def double(self, BFS: bool = False):
         """Handle chording."""
