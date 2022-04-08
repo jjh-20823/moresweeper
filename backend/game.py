@@ -1,5 +1,6 @@
 """Board: A number of tiles."""
 
+from telnetlib import PRAGMA_HEARTBEAT
 from .tile import Tile
 from .counter import Counter
 from .board import Board
@@ -31,10 +32,11 @@ class Game(object):
         """Set mines for the board."""
         if not self.upk:
             self.board.set_mines(x, y)  # don't need to update the mine field when it is UPK mode
+        self.board.calc_basic_stats()
         
     def init_upk(self):
         """Toggle UPK mode."""
-        self.board.recover()
+        self.board.recover_tiles()
         self.first = True
         self.win = False
         self.lose = False
@@ -61,10 +63,10 @@ class Game(object):
 
     def operate(func):
 
-        def inner(self, x: float, y: float, *args):
+        def inner(self, x: float, y: float):
             if self.win or self.lose:
                 return
-            changed_tiles, button = func(self, int(x), int(y), *args) # The real operation
+            changed_tiles, button = func(self, int(x), int(y), replay=True) # The real operation
             # self.update_Counter
             # self.save_MouseTrack
             # ...
@@ -79,33 +81,33 @@ class Game(object):
         return inner
 
     @operate
-    def left(self, x, y):
+    def left(self, x, y, **kwargs):
         if self.first:
             self.start(x, y)
-        return self.board.left(x, y, self.opts.bfs), Counter.LEFT
+        return self.board.left(x, y, self.opts.bfs, **kwargs), Counter.LEFT
 
     @operate
-    def right(self, x, y):
+    def right(self, x, y, **kwargs):
         if not self.opts.nf:
-            return self.board.right(x, y, self.opts.easy_flag), Counter.RIGHT
+            return self.board.right(x, y, self.opts.easy_flag, **kwargs), Counter.RIGHT
         else:
             return set(), Counter.OTHERS
 
     @operate
-    def double(self, x, y):
+    def double(self, x, y, **kwargs):
         if not self.opts.nf:
-            return self.board.double(x, y, self.opts.bfs), Counter.DOUBLE
+            return self.board.double(x, y, self.opts.bfs, **kwargs), Counter.DOUBLE
         else:
             return set(), Counter.OTHERS
 
     @operate
-    def left_hold(self, x, y):
-        return self.board.left_hold(x, y), Counter.OTHERS
+    def left_hold(self, x, y, **kwargs):
+        return self.board.left_hold(x, y, **kwargs), Counter.OTHERS
 
     @operate
-    def double_hold(self, x, y):
+    def double_hold(self, x, y, **kwargs):
         if not self.opts.nf:
-            return self.board.double_hold(x, y), Counter.OTHERS
+            return self.board.double_hold(x, y, **kwargs), Counter.OTHERS
         return set(), Counter.OTHERS
 
     def board_output(self, forced_whole_board = False):

@@ -22,6 +22,9 @@ class Board(object):
     def xy_index(self, x, y):
         return x * self.width + y
 
+    def tile_index(self, t):
+        return self.xy_index(t.x, t.y)
+
     def in_board(self, x, y):
         return 0 <= x < self.height and 0 <= y < self.width
 
@@ -48,8 +51,7 @@ class Board(object):
         self.marker = [
             [] for _ in range(self.height) for __ in range(self.width)
         ]
-        self.op_counter = [0 for _ in range(self.tile_count)]
-        self.is_counter = [0 for _ in range(self.tile_count)]
+        self.op_is_counter = [0 for _ in range(self.tile_count)]
 
     def init_tiles(self):
         self.tiles: list[Tile] = [
@@ -65,9 +67,8 @@ class Board(object):
 
         for i in mine_field[:self.mines]:
             self.tiles[i].set_mine()  # toggle mine value
-        self.calc_basic_stats()
 
-    def recover(self):
+    def recover_tiles(self):
         for tile in self.tiles:
             tile.recover()
         self.init()
@@ -94,15 +95,19 @@ class Board(object):
 
     def board_operate(func):
 
-        def inner(self, x: int, y: int, *args):
+        def inner(self, x: int, y: int, *args, replay: bool = False):
             self.release()
             changed_tiles = set()
             if self.in_board(x, y):
                 changed_tiles = func(self, self.xy_index(x, y), *args)
+            if replay and changed_tiles:
+                self.calc_in_game_stats(changed_tiles)
             changed_tiles |= self.get_tiles(
                 ((x + i, y + j) for i in range(-2, 3)
                 for j in range(-2, 3)))
-            self.end_check()
+            if self.end_check():
+                if not replay:
+                    self.calc_finish_stats()
             return changed_tiles
 
         return inner
@@ -113,7 +118,7 @@ class Board(object):
 
     @board_operate
     def right(self, index, easy_flag):
-       return self.tiles[index].flag(easy_flag=True)
+       return self.tiles[index].flag(easy_flag)
 
     @board_operate
     def double(self, index, BFS):
@@ -153,8 +158,8 @@ class Board(object):
             if t.value == 0 and t.covered:
                 op = t.open(BFS=False, test_op=True)
                 for tt in op:
-                    self.marker[self.xy_index(tt.x, tt.y)].append(op_num)
-                    self.op_counter[op_num] += 1
+                    self.marker[self.tile_index(tt)].append(op_num)
+                    self.op_is_counter[op_num] += 1
                 op_num += 1
         self.stats[STATS.OP] = op_num - 1
         self.stats[STATS.BBBV] = self.stats[STATS.OP]
@@ -167,18 +172,47 @@ class Board(object):
             if t.value != -1 and t.covered:
                 is_ = t.open(BFS=True)
                 for tt in is_:
-                    self.marker[self.xy_index(tt.x, tt.y)].append(is_num)
-                    self.is_counter[is_num] += 1
+                    self.marker[self.tile_index(tt)].append(is_num)
+                    self.op_is_counter[is_num] += 1
                 is_num -= 1
         self.stats[STATS.IS] = -1 - is_num
         for tile in temp_tiles:
             tile.recover()
 
-    def calc_in_game_stats(self):
-        ...
+    def calc_in_game_stats(self, changed_tiles: set[Tile]):
+        self.stats[STATS.flags] = sum(1 for t in self.tiles if t.flagged)
+        for t in changed_tiles:
+            if t.covered or t.is_mine():
+                continue
+            else:
+                for temp_index in self.marker[self.tile_index(t)]:
+                    self.op_is_counter[temp_index] -= 1
+                    if temp_index < 0:
+                        self.stats[STATS.solved_BBBV] += 1
+                        if self.op_is_counter[temp_index] == 0:
+                            self.stats[STATS.solved_IS] += 1
+                    else:
+                        if self.op_is_counter[temp_index] == 0:
+                            self.stats[STATS.solved_OP] += 1
+                            self.stats[STATS.solved_BBBV] += 1
 
     def calc_finish_stats(self):
-        ...
+        self.stats[STATS.flags] = sum(1 for t in self.tiles if t.flagged)
+        self.stats[STATS.solved_BBBV], self.stats[STATS.solved_OP], self.stats[STATS.solved_IS] = 0, 0, 0
+        for t in self.tiles:
+            if t.covered or t.is_mine():
+                continue
+            else:
+                for temp_index in self.marker[self.tile_index(t)]:
+                    self.op_is_counter[temp_index] -= 1
+                    if temp_index < 0:
+                        self.stats[STATS.solved_BBBV] += 1
+                        if self.op_is_counter[temp_index] == 0:
+                            self.stats[STATS.solved_IS] += 1
+                    else:
+                        if self.op_is_counter[temp_index] == 0:
+                            self.stats[STATS.solved_OP] += 1
+                            self.stats[STATS.solved_BBBV] += 1
 
     def __repr__(self):
         return '\n'.join(''.join(
