@@ -4,7 +4,7 @@ from .tile import Tile
 from .stats import *
 from random import shuffle
 from copy import deepcopy
-from time import sleep
+from time import perf_counter_ns as time
 
 
 class Board(object):
@@ -152,7 +152,6 @@ class Board(object):
         for t in temp_tiles:
             if t.value == 0 and t.covered:
                 op = t.open(BFS=False, test_op=True)
-                print(t, op)
                 for tt in op:
                     self.marker[self.xy_index(tt.x, tt.y)].append(op_num)
                     self.op_counter[op_num] += 1
@@ -167,7 +166,6 @@ class Board(object):
         for t in temp_tiles:
             if t.value != -1 and t.covered:
                 is_ = t.open(BFS=True)
-                print(t, is_)
                 for tt in is_:
                     self.marker[self.xy_index(tt.x, tt.y)].append(is_num)
                     self.is_counter[is_num] += 1
