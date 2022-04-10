@@ -49,10 +49,11 @@ class Game(object):
     def start(self, x, y):
         # while not self.valid_bv:
         self.set_mines(x, y)
-        # self.counter.start_timer()
+        self.counter.start_timer()
         self.first = False
 
     def end(self):
+        self.counter.stop_timer()
         if self.board.blast:
             self.stable = False
             self.lose = True
@@ -66,18 +67,19 @@ class Game(object):
 
     def operate(func):
 
-        def inner(self, x: float, y: float):
+        def inner(self, x: float = 0.0, y: float = 0.0):
             if self.win or self.lose:
                 return
             changed_tiles, button = func(self, int(x), int(y), replay=True) # The real operation
-            # self.update_Counter
+            self.counter.refresh(changed_tiles, button)
             # self.save_MouseTrack
             # ...
+            # print(self.stats)
             if self.board.blast or self.board.finish:
                 self.end()
             else:
                 self.stable = True
-                for tile in changed_tiles:
+                for tile in changed_tiles | self.board.neighbourhood(int(x), int(y)):
                     tile.update()
                 self.recently_updated = changed_tiles
 
@@ -113,11 +115,22 @@ class Game(object):
             return self.board.double_hold(x, y, **kwargs), Counter.OTHERS
         return set(), Counter.OTHERS
 
+    @operate
+    def nothing(self, *args, **kwargs):
+        '''A slot for regularly refreshing the counter'''
+        return set(), Counter.OTHERS
+
     def board_output(self, forced_whole_board = False):
         if self.stable and not forced_whole_board:
             return [(t.x, t.y, t.status) for t in self.recently_updated]
         else:
             return self.board.output()
+
+    def time_output(self):
+        ...
+
+    def mines_left_output(self):
+        ...
 
     # def __repr__(self):
     #     return '\n'.join(''.join(

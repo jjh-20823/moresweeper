@@ -100,11 +100,8 @@ class Board(object):
             changed_tiles = set()
             if self.in_board(x, y):
                 changed_tiles = func(self, self.xy_index(x, y), *args)
-            if replay and changed_tiles:
-                self.calc_in_game_stats(changed_tiles)
-            changed_tiles |= self.get_tiles(
-                ((x + i, y + j) for i in range(-2, 3)
-                for j in range(-2, 3)))
+            if changed_tiles:
+                self.calc_in_game_stats(changed_tiles, replay)
             if self.end_check():
                 if not replay:
                     self.calc_finish_stats()
@@ -137,19 +134,10 @@ class Board(object):
     def output(self):
         return [(t.x, t.y, t.status) for t in self.tiles]
 
-    # @staticmethod()
-    # def has_op(tiles: set[Tile]):
-    #     for t in tiles:
-    #         if t.value == 0 and t.covered:
-    #             return True
-    #     return False
-
-    # @staticmethod()
-    # def has_bv(tiles: set[Tile]):
-    #     for t in tiles:
-    #         if t.value != -1 and t.covered:
-    #             return True
-    #     return False
+    def neighbourhood(self, x, y):
+        return self.get_tiles(
+                ((x + i, y + j) for i in range(-2, 3)
+                for j in range(-2, 3)))
 
     def calc_basic_stats(self):
         temp_tiles = self.tiles
@@ -179,25 +167,28 @@ class Board(object):
         for tile in temp_tiles:
             tile.recover()
 
-    def calc_in_game_stats(self, changed_tiles: set[Tile]):
+    def calc_in_game_stats(self, changed_tiles: set[Tile], replay):
         self.stats[STATS.flags] = sum(1 for t in self.tiles if t.flagged)
-        for t in changed_tiles:
-            if t.covered or t.is_mine():
-                continue
-            else:
-                for temp_index in self.marker[self.tile_index(t)]:
-                    self.op_is_counter[temp_index] -= 1
-                    if temp_index < 0:
-                        self.stats[STATS.solved_BBBV] += 1
-                        if self.op_is_counter[temp_index] == 0:
-                            self.stats[STATS.solved_IS] += 1
-                    else:
-                        if self.op_is_counter[temp_index] == 0:
-                            self.stats[STATS.solved_OP] += 1
+        self.stats[STATS.mines_left] = self.mines - self.stats[STATS.flags]
+        if replay:
+            for t in changed_tiles:
+                if t.covered or t.is_mine():
+                    continue
+                else:
+                    for temp_index in self.marker[self.tile_index(t)]:
+                        self.op_is_counter[temp_index] -= 1
+                        if temp_index < 0:
                             self.stats[STATS.solved_BBBV] += 1
+                            if self.op_is_counter[temp_index] == 0:
+                                self.stats[STATS.solved_IS] += 1
+                        else:
+                            if self.op_is_counter[temp_index] == 0:
+                                self.stats[STATS.solved_OP] += 1
+                                self.stats[STATS.solved_BBBV] += 1
 
     def calc_finish_stats(self):
         self.stats[STATS.flags] = sum(1 for t in self.tiles if t.flagged)
+        self.stats[STATS.mines_left] = self.mines - self.stats[STATS.flags]
         self.stats[STATS.solved_BBBV], self.stats[STATS.solved_OP], self.stats[STATS.solved_IS] = 0, 0, 0
         for t in self.tiles:
             if t.covered or t.is_mine():
