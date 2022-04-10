@@ -1,9 +1,9 @@
-stats_count = 15
+stats_count = 18
 class STATS():
     [
-        BBBV, OP, IS, 
+        mode, time, BBBV, OP, IS, 
         solved_BBBV, solved_OP, solved_IS, 
-        flags, 
-        left_ce, right_ce, double_ce, total_ce, 
-        left_cl, right_cl, double_cl, total_cl, 
+        flags, mines_left, 
+        total_ce, left_ce, right_ce, double_ce, 
+        total_cl, left_cl, right_cl, double_cl, 
     ] = (list(range(stats_count)))

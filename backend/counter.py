@@ -1,39 +1,48 @@
 """The counter class."""
 from time import monotonic_ns, perf_counter_ns
+from .stats import STATS
 timer = perf_counter_ns # Not sure which clock to use
 NS2S = 1e-9
 
 class Counter():
     """Counter: A number of game statistics."""
-    LEFT = 'l'
-    RIGHT = 'r'
-    DOUBLE = 'd'
-    OTHERS = 'o'
+    LEFT = 1
+    RIGHT = 2
+    DOUBLE = 3
+    OTHERS = 0
 
     def __init__(self, stats):
         """Initialize the counter."""
-        self.start_time = 0
-        self.end_time = 0
-        self.game_time = -1
+        self.start_ns_time = 0
+        self.game_time = -1.0
+        self.active = False
         self.stats = stats
-        self.cl = {Counter.LEFT: 0, Counter.RIGHT: 0, Counter.DOUBLE: 0}
-        self.ce = {Counter.LEFT: 0, Counter.RIGHT: 0, Counter.DOUBLE: 0}
+
+    def refresh_timer(self):
+        if self.active:
+            self.game_time = (timer() - self.start_ns_time) * NS2S
+
+    def get_time(self):
+        return  max(self.game_time, 0.0)
 
     def start_timer(self):
         """Start the timer."""
-        self.start_time = timer()
+        self.start_ns_time = timer()
+        self.active = True
         self.refresh_timer()
 
-    def refresh_timer(self):
-        self.game_time = (timer() - self.start_time)
+    def stop_timer(self):
+        self.refresh_timer()
+        self.active = False
 
-    def get_time(self):
-        return self.game_time
-
-    def update_ce_cl(self, result, button):
+    def refresh(self, changed_tiles=set(), button=OTHERS):
         """Update statistics of ce(effective clicks) and cl(clicks)."""
-        if button == Counter.OTHERS:
-            return
-        self.cl[button] += 1
-        if result:
-            self.ce[button] += 1
+        if self.active:
+            if button != Counter.OTHERS:
+                self.stats[STATS.total_cl] += 1
+                self.stats[STATS.total_cl + button] += 1
+                if changed_tiles:
+                    self.stats[STATS.total_ce] += 1
+                    self.stats[STATS.total_ce + button] += 1
+            self.refresh_timer()
+                # do some calculate

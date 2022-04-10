@@ -102,9 +102,6 @@ class Board(object):
                 changed_tiles = func(self, self.xy_index(x, y), *args)
             if replay and changed_tiles:
                 self.calc_in_game_stats(changed_tiles)
-            changed_tiles |= self.get_tiles(
-                ((x + i, y + j) for i in range(-2, 3)
-                for j in range(-2, 3)))
             if self.end_check():
                 if not replay:
                     self.calc_finish_stats()
@@ -137,19 +134,10 @@ class Board(object):
     def output(self):
         return [(t.x, t.y, t.status) for t in self.tiles]
 
-    # @staticmethod()
-    # def has_op(tiles: set[Tile]):
-    #     for t in tiles:
-    #         if t.value == 0 and t.covered:
-    #             return True
-    #     return False
-
-    # @staticmethod()
-    # def has_bv(tiles: set[Tile]):
-    #     for t in tiles:
-    #         if t.value != -1 and t.covered:
-    #             return True
-    #     return False
+    def neighbourhood(self, x, y):
+        return self.get_tiles(
+                ((x + i, y + j) for i in range(-2, 3)
+                for j in range(-2, 3)))
 
     def calc_basic_stats(self):
         temp_tiles = self.tiles
@@ -181,6 +169,7 @@ class Board(object):
 
     def calc_in_game_stats(self, changed_tiles: set[Tile]):
         self.stats[STATS.flags] = sum(1 for t in self.tiles if t.flagged)
+        self.stats[STATS.mines_left] = self.mines - self.stats[STATS.flags]
         for t in changed_tiles:
             if t.covered or t.is_mine():
                 continue
