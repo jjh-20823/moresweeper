@@ -25,8 +25,8 @@ class Game(object):
         self.upk: bool = False
         self.stable: bool = False
         self.recently_updated: list[Tile] = self.board.tiles.copy()
-        # self.holding: set(Tile) = set()
-        # self.counter: Counter = Counter()
+        self.stats = self.board.stats
+        self.counter: Counter = Counter(self.stats)
 
     def set_mines(self, x, y):
         """Set mines for the board."""
@@ -43,8 +43,11 @@ class Game(object):
         self.upk = True
         self.stable = False
         self.recently_updated = self.board.tiles.copy()
+        self.stats = self.board.stats
+        self.counter: Counter = Counter(self.stats)
 
     def start(self, x, y):
+        # while not self.valid_bv:
         self.set_mines(x, y)
         # self.counter.start_timer()
         self.first = False

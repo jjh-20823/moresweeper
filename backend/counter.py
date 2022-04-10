@@ -10,11 +10,12 @@ class Counter():
     DOUBLE = 'd'
     OTHERS = 'o'
 
-    def __init__(self):
+    def __init__(self, stats):
         """Initialize the counter."""
         self.start_time = 0
         self.end_time = 0
         self.game_time = -1
+        self.stats = stats
         self.cl = {Counter.LEFT: 0, Counter.RIGHT: 0, Counter.DOUBLE: 0}
         self.ce = {Counter.LEFT: 0, Counter.RIGHT: 0, Counter.DOUBLE: 0}
 
