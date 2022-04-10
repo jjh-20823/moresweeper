@@ -74,7 +74,7 @@ class Game(object):
             self.counter.refresh(changed_tiles, button)
             # self.save_MouseTrack
             # ...
-            print(self.stats)
+            # print(self.stats)
             if self.board.blast or self.board.finish:
                 self.end()
             else:
