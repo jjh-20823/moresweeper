@@ -2,10 +2,10 @@
 
 import os
 import json
-from pydantic import BaseSettings, validator
+from pydantic import BaseModel, validator
 
 
-def check_range(item: int, lb: int = None, ub: int = None) -> bool:
+def check_range(item: int, lb: int = None, ub: int = None):
     """Check the range of an item."""
     if lb is None:
         lb = item  # set default lower bound
@@ -13,13 +13,10 @@ def check_range(item: int, lb: int = None, ub: int = None) -> bool:
     if ub is None:
         ub = item  # set default upper bound
 
-    try:
-        return lb <= item <= ub
-    except:
-        return False
+    if item < lb or item > ub:
+        raise ValueError(f'Target value({item}) should be between {lb} and {ub}!')
 
-
-class GameSettings(BaseSettings):
+class GameSettings(BaseModel):
     """Settings for game."""
 
     mode: int = 3
@@ -33,19 +30,17 @@ class GameSettings(BaseSettings):
     @validator('height', 'width')
     def check_height_width(cls, v: int):
         """Check the range of height and width."""
-        if not check_range(v, 1, 80):
-            raise ValueError('Height and width should be between 1 and 80!')
+        check_range(v, 1, 80)
         return v
 
     @validator('mines')
     def check_mines(cls, v: int):
         """Check the range of mines."""
-        if not check_range(v, 0, 999):
-            raise ValueError('Mines should be between 0 and 999!')
+        check_range(v, 0, 999)
         return v
 
 
-class UISettings(BaseSettings):
+class UISettings(BaseModel):
     """Settings for UI."""
 
     skin: str = 'default'
@@ -54,12 +49,11 @@ class UISettings(BaseSettings):
     @validator('size')
     def check_tile_size(cls, v: int):
         """Check the range of tile size."""
-        if not check_range(v, 10, 80):
-            raise ValueError('Size of a tile shoule be between 10 and 80!')
+        check_range(v, 10, 80)
         return v
 
 
-class Settings(BaseSettings):
+class Settings(BaseModel):
     """Settings for all."""
 
     game: GameSettings = GameSettings()
