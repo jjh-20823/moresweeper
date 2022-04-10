@@ -3,8 +3,6 @@
 from .tile import Tile
 from .stats import *
 from random import shuffle
-from copy import deepcopy
-from time import perf_counter_ns as time
 
 
 class Board(object):
@@ -19,11 +17,13 @@ class Board(object):
         self.mines: int = self.opts.mines  # mines
         self.init_tiles()
 
-    def xy_index(self, x, y):
+    def xy_index(self, x: int, y: int) -> int:
+        """Convert a 2-D x-y coordinate to an 1-D index."""
         return x * self.width + y
 
-    def tile_index(self, t):
-        return self.xy_index(t.x, t.y)
+    def tile_index(self, tile: Tile) -> int:
+        """Get the index of the tile according to the current board."""
+        return self.xy_index(tile.x, tile.y)
 
     def in_board(self, x, y):
         return 0 <= x < self.height and 0 <= y < self.width
@@ -49,7 +49,7 @@ class Board(object):
         self.blast: bool = False
         self.stats = [0 for _ in range(stats_count)]
         self.marker = [
-            [] for _ in range(self.height) for __ in range(self.width)
+            [] for _ in range(self.height * self.width)
         ]
         self.op_is_counter = [0 for _ in range(self.tile_count)]
 
@@ -69,40 +69,46 @@ class Board(object):
             self.tiles[i].set_mine()  # toggle mine value
 
     def recover_tiles(self):
+        """Recover all of the tiles to COVERED in a board."""
         for tile in self.tiles:
             tile.recover()
         self.init()
 
     def release(self):
+        """Handle release event from upper layer."""
         for tile in self.tiles:
             tile.unhold()
 
-    def finish_check(self):
+    def is_finished(self) -> bool:
+        """Check whether the board is finished completely."""
         for tile in self.tiles:
             if tile.covered and not tile.is_mine():
                 return False
-        self.finish = True
         return True
 
-    def blast_check(self):
+    def is_blasted(self) -> bool:
+        """Check whether the board is blasted."""
         for tile in self.tiles:
             if not tile.covered and tile.is_mine():
-                self.blast = True
-        return self.blast
+                return True
+        return False
 
-    def end_check(self):
-        return self.blast_check() or self.finish_check()
+    def is_ended(self):
+        """Check whether the game is ended properly."""
+        return self.is_finished() or self.is_blasted()
 
     def board_operate(func):
+        """Decorator for board operations."""
 
         def inner(self, x: int, y: int, *args, replay: bool = False):
+            """Wrapper of board_operate."""
             self.release()
             changed_tiles = set()
             if self.in_board(x, y):
                 changed_tiles = func(self, self.xy_index(x, y), *args)
             if changed_tiles:
                 self.calc_in_game_stats(changed_tiles, replay)
-            if self.end_check():
+            if self.is_ended():
                 if not replay:
                     self.calc_finish_stats()
             return changed_tiles
@@ -110,24 +116,29 @@ class Board(object):
         return inner
 
     @board_operate
-    def left(self, index, BFS):
+    def left(self, index: int, BFS: bool) -> set():
+        """Handle left click event from upper layer."""
         return self.tiles[index].open(BFS)
 
     @board_operate
-    def right(self, index, easy_flag):
-       return self.tiles[index].flag(easy_flag)
+    def right(self, index: int, easy_flag: bool) -> set():
+        """Handle right click event from upper layer."""
+        return self.tiles[index].flag(easy_flag)
 
     @board_operate
-    def double(self, index, BFS):
+    def double(self, index: int, BFS: bool) -> set():
+        """Handle double click event from upper layer."""
         return self.tiles[index].double(BFS)
 
     @board_operate
-    def left_hold(self, index):
+    def left_hold(self, index) -> set():
+        """Handle left hold event from upper layer."""
         self.tiles[index].left_hold()
         return set()
 
     @board_operate
-    def double_hold(self, index):
+    def double_hold(self, index) -> set():
+        """Handle double hold event from upper layer."""
         self.tiles[index].double_hold()
         return set()
 

@@ -1,23 +1,20 @@
-"""Board: A number of tiles."""
+"""Game: upper layer to communicate with UI and board."""
 
-from telnetlib import PRAGMA_HEARTBEAT
 from .tile import Tile
 from .counter import Counter
 from .board import Board
-from random import shuffle
 
 
 class Game(object):
-    """Board: A number of tiles."""
+    """Game: upper layer to communicate with UI and board."""
 
     def __init__(self, settings: any):
-        """Initialize a board."""
+        """Initialize a game."""
         self.opts: any = settings
-        
         self.init()
 
     def init(self):
-        """Initialize the board."""
+        """Initialize the board and counter."""
         self.board = Board(self.opts)
         self.first: bool = True
         self.win: bool = False
@@ -54,12 +51,12 @@ class Game(object):
 
     def end(self):
         self.counter.stop_timer()
-        if self.board.blast:
+        if self.board.is_blasted():
             self.stable = False
             self.lose = True
             for tile in self.board.tiles:
                 tile.update_blast()
-        elif self.board.finish:
+        elif self.board.is_finished():
             self.stable = False
             self.win = True
             for tile in self.board.tiles:
@@ -76,7 +73,7 @@ class Game(object):
             # self.save_MouseTrack
             # ...
             # print(self.stats)
-            if self.board.blast or self.board.finish:
+            if self.board.is_ended():
                 self.end()
             else:
                 self.stable = True
