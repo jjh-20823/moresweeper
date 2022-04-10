@@ -67,11 +67,12 @@ class Game(object):
 
     def operate(func):
 
-        def inner(self, x: float = 0.0, y: float = 0.0):
+        def inner(self, x: float = -5.0, y: float = -5.0):
             if self.win or self.lose:
                 return
             changed_tiles, button = func(self, int(x), int(y), replay=True) # The real operation
             self.counter.refresh(changed_tiles, button)
+            pending_tiles = changed_tiles | self.board.neighbourhood(int(x), int(y))
             # self.save_MouseTrack
             # ...
             # print(self.stats)
@@ -79,9 +80,9 @@ class Game(object):
                 self.end()
             else:
                 self.stable = True
-                for tile in changed_tiles | self.board.neighbourhood(int(x), int(y)):
+                for tile in pending_tiles:
                     tile.update()
-                self.recently_updated = changed_tiles
+                self.recently_updated = pending_tiles
 
         return inner
 
