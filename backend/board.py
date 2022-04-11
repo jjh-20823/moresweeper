@@ -79,35 +79,49 @@ class Board(object):
         for tile in self.tiles:
             tile.unhold()
 
-    def is_finished(self) -> bool:
-        """Check whether the board is finished completely."""
+    def _update_finished(self):
+        """Update whether the board is finished."""
         for tile in self.tiles:
             if tile.covered and not tile.is_mine():
-                return False
-        return True
+                return
+        self.finish = True
+
+    def is_finished(self) -> bool:
+        """Check whether the board is finished."""
+        return self.finish
+
+    def _update_blasted(self):
+        """Update whether the board is blasted."""
+        for tile in self.tiles:
+            if not tile.covered and tile.is_mine():
+                self.blast = True
+                return
 
     def is_blasted(self) -> bool:
         """Check whether the board is blasted."""
-        for tile in self.tiles:
-            if not tile.covered and tile.is_mine():
-                return True
-        return False
+        return self.blast
 
-    def is_ended(self):
-        """Check whether the game is ended properly."""
+    def is_ended(self) -> bool:
+        """Check whether the game is ended."""
         return self.is_finished() or self.is_blasted()
 
     def board_operate(func):
-        """Decorator for board operations."""
+        """Decorate board operations."""
 
         def inner(self, x: int, y: int, *args, replay: bool = False):
-            """Wrapper of board_operate."""
+            """Wrap board_operate method."""
             self.release()
             changed_tiles = set()
             if self.in_board(x, y):
                 changed_tiles = func(self, self.xy_index(x, y), *args)
+            
             if changed_tiles:
                 self.calc_in_game_stats(changed_tiles, replay)
+            
+            # update the game status (finish / blast)
+            self._update_finished()
+            self._update_blasted()
+
             if self.is_ended():
                 if not replay:
                     self.calc_finish_stats()
