@@ -56,17 +56,12 @@ class Tile(object):
         """Update status of a tile."""
         if self.flagged:
             self.status = Tile.FLAGGED
-            return
-
-        if self.down:
+        elif self.down:
             self.status = Tile.DOWN
-            return
-
-        if self.covered:
+        elif self.covered:
             self.status = Tile.COVERED
-            return
-
-        self.status = self.value
+        else:
+            self.status = self.value
 
     def update_finish(self):
         """Update status of a tile after finishing a game."""
@@ -88,14 +83,12 @@ class Tile(object):
         """Change status when holding the left mouse key."""
         if self.covered and not self.flagged:
             self.down = True
-        return set()
 
     def double_hold(self):
         """Change status when holding the left and right mouse key."""
         self.left_hold()
         for t in self.get_neighbours():
             t.left_hold()
-        return set()
 
     def unhold(self):
         """Change status when unholding a single mouse key."""
@@ -108,18 +101,8 @@ class Tile(object):
             return set()
         self.covered = False
         if not self.is_mine() and (
-            self.value == 0
-            or 
-            (
-                BFS
-                and 
-                self.value == sum(
-                    1 
-                    for t in self.get_neighbours()
-                    if t.flagged
-                )
-            )
-        ):
+                self.value == 0 or (BFS and self.value == sum(
+                    1 for t in self.get_neighbours() if t.flagged))):
             return self.get_neighbours() | set((self, ))
         return set((self, ))
 
