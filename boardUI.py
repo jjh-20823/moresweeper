@@ -5,6 +5,9 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QPainter, QMouseEvent
 
+from time import monotonic_ns, perf_counter_ns
+timer = perf_counter_ns
+NS2MS = 1e-6
 
 class boardUI(QtWidgets.QWidget):
     """UI of the board."""
@@ -82,6 +85,7 @@ class boardUI(QtWidgets.QWidget):
         self.update()
 
     def mouseReleaseEvent(self, event):
+        # a = timer()
         y_axis, x_axis = event.localPos().x(
         ) / self.tile_size, event.localPos().y() / self.tile_size
         signal = int(event.buttons()) % 4
@@ -93,6 +97,7 @@ class boardUI(QtWidgets.QWidget):
                 self.left.emit(x_axis, y_axis)
             self.doubled = False
         self.update()
+        # print((timer() - a)*NS2MS)
 
     def mouseMoveEvent(self, event):
         signal = int(event.buttons()) % 4

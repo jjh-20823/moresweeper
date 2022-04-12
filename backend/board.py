@@ -53,7 +53,7 @@ class Board(object):
         self.blast: bool = False
         self.stats = [0 for _ in range(stats_count)]
         self.marker = [
-            [] for _ in range(self.height * self.width)
+            [] for _ in range(self.tile_count)
         ]
         self.op_is_counter = [0 for _ in range(self.tile_count)]
 
@@ -95,9 +95,9 @@ class Board(object):
         """Check whether the board is finished."""
         return self.finish
 
-    def _update_blasted(self):
+    def _update_blasted(self, changed_tiles=set()):
         """Update whether the board is blasted."""
-        for tile in self.tiles:
+        for tile in changed_tiles or self.tiles:
             if not tile.covered and tile.is_mine():
                 self.blast = True
                 return
@@ -123,12 +123,12 @@ class Board(object):
             if changed_tiles:
                 self.calc_in_game_stats(changed_tiles, replay)
             
-            # update the game status (finish / blast)
-            self._update_finished()
-            self._update_blasted()
+                # update the game status (finish / blast)
+                self._update_finished()
+                self._update_blasted(changed_tiles)
 
-            if self.is_ended() and not replay:
-                self.calc_finish_stats()
+                if self.is_ended() and not replay:
+                    self.calc_finish_stats()
             return changed_tiles
 
         return inner
