@@ -23,7 +23,8 @@ class Board(object):
 
     def tile_index(self, tile: Tile) -> int:
         """Get the index of the tile according to the current board."""
-        return self.xy_index(tile.x, tile.y)
+        x, y = tile.get_coordinate()
+        return self.xy_index(x, y)
 
     def in_board(self, x, y):
         """Judge whether a 2-D coordinate is inside the board."""
@@ -241,6 +242,6 @@ class Board(object):
 
     def __repr__(self):
         """Print the board's status."""
-        return '\n'.join(''.join(
-            str(self.get_tile(x, y).status) for y in range(self.width))
+        return '\n'.join(' '.join(
+            str(self.get_tile(x, y).get_status()) for y in range(self.width))
                          for x in range(self.height)) + '\n'

@@ -1,6 +1,9 @@
 """The tile class."""
 
 
+from typing import Iterable
+
+
 class Tile(object):
     """Tile: Minimum unit of minesweeper."""
 
@@ -26,6 +29,14 @@ class Tile(object):
     def __repr__(self) -> str:
         """Print a tile."""
         return f'Tile[v: {self.value}]: (x: {self.x}, y: {self.y})'
+
+    def get_coordinate(self) -> tuple[int, int]:
+        """Get the coordinate of the tile."""
+        return (self.x, self.y)
+
+    def get_status(self) -> int:
+        """Get the status of the tile."""
+        return self.status
 
     def set_mine(self):
         """Set a tile with a mine."""
