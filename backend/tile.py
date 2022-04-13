@@ -52,16 +52,20 @@ class Tile(object):
         """Judge whether the tile is a mine by its value."""
         return self.value == Tile.MINE
 
+    def get_neighbours(self) -> set:
+        """Get the neighbours of a tile."""
+        return self.neighbours
+
+    def set_neighbours(self, neighbours: Iterable):
+        """Set the neighbours of a tile."""
+        return set(neighbours)
+
     def recover(self):
         """Recover the status of the tile."""
         self.flagged = False  # flag indicator
         self.covered = True  # cover indicator
         self.down = False  # pressed indicator
         self.status = Tile.COVERED  # status for upper layer
-
-    def get_neighbours(self) -> set:
-        """Get the neighbours of a tile."""
-        return self.neighbours
 
     def update(self):
         """Update status of a tile."""
