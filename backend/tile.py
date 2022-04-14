@@ -58,7 +58,7 @@ class Tile(object):
 
     def set_neighbours(self, neighbours: Iterable):
         """Set the neighbours of a tile."""
-        return set(neighbours)
+        self.neighbours = set(neighbours)
 
     def recover(self):
         """Recover the status of the tile."""

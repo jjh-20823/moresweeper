@@ -28,9 +28,10 @@ class Game(object):
     def set_mines(self, x, y):
         """Set mines for the board."""
         if not self.upk:
-            self.board.set_mines(x, y)  # don't need to update the mine field when it is UPK mode
+            # don't need to update the mine field when it is UPK mode
+            self.board.set_mines(x, y)
         self.board.calc_basic_stats()
-        
+
     def init_upk(self):
         """Toggle UPK mode."""
         self.board.recover_tiles()
@@ -67,9 +68,11 @@ class Game(object):
         def inner(self, x: float = -5.0, y: float = -5.0):
             if self.win or self.lose:
                 return
-            changed_tiles, button = func(self, int(x), int(y), replay=True) # The real operation
+            changed_tiles, button = func(self, int(x), int(y),
+                                         replay=True)  # The real operation
             self.counter.refresh(changed_tiles, button)
-            pending_tiles = changed_tiles | self.board.neighbourhood(int(x), int(y))
+            pending_tiles = changed_tiles | set(
+                self.board.get_neighbours(x, y, radius=2, itself=True))
             # self.save_MouseTrack
             # ...
             # print(self.stats)
@@ -92,14 +95,16 @@ class Game(object):
     @operate
     def right(self, x, y, **kwargs):
         if not self.opts.nf:
-            return self.board.right(x, y, self.opts.easy_flag, **kwargs), Counter.RIGHT
+            return self.board.right(x, y, self.opts.easy_flag,
+                                    **kwargs), Counter.RIGHT
         else:
             return set(), Counter.OTHERS
 
     @operate
     def double(self, x, y, **kwargs):
         if not self.opts.nf:
-            return self.board.double(x, y, self.opts.bfs, **kwargs), Counter.DOUBLE
+            return self.board.double(x, y, self.opts.bfs,
+                                     **kwargs), Counter.DOUBLE
         else:
             return set(), Counter.OTHERS
 
@@ -118,19 +123,14 @@ class Game(object):
         '''A slot for regularly refreshing the counter'''
         return set(), Counter.OTHERS
 
-    def board_output(self, forced_whole_board = False):
+    def board_output(self, forced_whole_board=False):
         if self.stable and not forced_whole_board:
             return [(t.x, t.y, t.status) for t in self.recently_updated]
         else:
             return self.board.output()
 
     def time_output(self):
-        ...
+        pass
 
     def mines_left_output(self):
-        ...
-
-    # def __repr__(self):
-    #     return '\n'.join(''.join(
-    #         str(self.get_tile(x, y).status) for y in range(self.width))
-    #                      for x in range(self.height)) + '\n'
+        pass

@@ -3,7 +3,9 @@
 from .tile import Tile
 from .stats import *
 from typing import Iterator
+
 import random
+import itertools
 
 
 class Board(object):
@@ -17,6 +19,8 @@ class Board(object):
         self.tile_count: int = self.height * self.width
         self.mines: int = self.opts.mines  # mines
         self.init_tiles()
+        self.set_tile_neighbours()
+        self.init()
 
     def xy_index(self, x: int, y: int) -> int:
         """Convert a 2-D x-y coordinate to an 1-D index."""
@@ -27,44 +31,33 @@ class Board(object):
         x, y = tile.get_coordinate()
         return self.xy_index(x, y)
 
-    def in_board(self, x, y):
-        """Judge whether a 2-D coordinate is inside the board."""
+    def in_board(self, x: int, y: int) -> bool:
+        """Check whether a coordinate is in the board."""
         return 0 <= x < self.height and 0 <= y < self.width
 
-    def get_tile(self, x, y):
+    def get_tile(self, x: int, y: int):
         """Get a tile from the board."""
         return self.tiles[self.xy_index(x, y)] if self.in_board(x, y) else None
 
-    def get_tiles(self, pairs):
-        """Get some tiles from the board."""
-        tiles = set(self.get_tile(*pair) for pair in pairs)
-        tiles.discard(None)
-        return tiles
+    def get_neighbours(self, x: int, y: int, radius: int = 1,
+                       itself: bool = False) -> Iterator[Tile]: # yapf: disable
+        """Get neighbours of a 2-D coordinate inside the board."""
+        for i, j in itertools.product(
+                range(max(0, x - radius), min(self.height, x + radius + 1)),
+                range(max(0, y - radius), min(self.width, y + radius + 1))):
+            if i == x and j == y:
+                continue
+            yield self.get_tile(i, j)
 
-    # def get_neighbours(self,
-    #                    x: int,
-    #                    y: int,
-    #                    exclude_itself: bool = True,
-    #                    lx: int = -1,
-    #                    rx: int = 1,
-    #                    ly: int = -1,
-    #                    ry: int = 1) -> Iterator[Tile]:
-    #     """Get neighbours of a 2-D coordinate inside the board."""
-    #     for i in range(max(0, x + lx), min(1, 1)):
-    #         for j in range():
-    #             if exclude_itself and i == x and j == y:
-    #                 yield self.get_tile(self.xy_index(i, j))
+        if itself:
+            yield self.get_tile(x, y)
 
-    def set_neighbours(self):
+    def set_tile_neighbours(self):
         """Set a tile's neighbours."""
-        # TODO global neighbour method implementation
-        # TODO neighbours as an iterable
-        # TODO neighbours w/ w/o itself
         for tile in self.tiles:
-            tile.neighbours = self.get_tiles(((tile.x + i, tile.y + j)
-                                              for i in (-1, 0, 1)
-                                              for j in (-1, 0, 1)))
-            tile.neighbours.remove(tile)
+            x, y = tile.get_coordinate()
+            neighbours = self.get_neighbours(x, y)
+            tile.set_neighbours(neighbours)
 
     def init(self):
         """Initialize the board."""
@@ -78,9 +71,7 @@ class Board(object):
         """Initialize tiles."""
         self.tiles: list[Tile] = [
             Tile(x, y) for x in range(self.height) for y in range(self.width)
-        ]  # tiles
-        self.set_neighbours()
-        self.init()
+        ]
 
     def set_mines(self, x, y):
         """Set mines for the board."""
@@ -182,11 +173,6 @@ class Board(object):
     def output(self):
         """Output coordinate and status of all tiles inside a board."""
         return [(t.x, t.y, t.status) for t in self.tiles]
-
-    def neighbourhood(self, x, y):
-        """Get a 5*5 neighbourhood from a 2-D coordinate."""
-        return self.get_tiles(
-            ((x + i, y + j) for i in range(-2, 3) for j in range(-2, 3)))
 
     def calc_basic_stats(self):
         """Calculate basic statistics."""
