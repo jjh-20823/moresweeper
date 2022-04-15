@@ -21,8 +21,7 @@ class Board(object):
         self.init_tiles()
         self.set_tile_neighbours()
         self.init()
-        print(self)
-    
+
     def xy_index(self, x: int, y: int) -> int:
         """Convert a 2-D x-y coordinate to an 1-D index."""
         return x * self.height + y

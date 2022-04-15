@@ -14,7 +14,7 @@ def check_range(item: int, lb: int = None, ub: int = None):
         ub = item  # set default upper bound
 
     if item < lb or item > ub:
-        raise ValueError(f'Target value({item}) should be between {lb} and {ub}!')
+        raise ValueError(f'Target value {item} should be between {lb} and {ub}!')
 
 class GameSettings(BaseModel):
     """Settings for game."""
@@ -34,9 +34,10 @@ class GameSettings(BaseModel):
         return v
 
     @validator('mines')
-    def check_mines(cls, v: int):
+    def check_mines(cls, v: int, values: dict):
         """Check the range of mines."""
-        check_range(v, 0, 999)
+        # Check mine count according to width and height and maximum together
+        check_range(v, 0, min(999, values['width'] * values['height'] - 1))
         return v
 
 
