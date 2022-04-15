@@ -45,12 +45,14 @@ class Game(object):
         self.counter: Counter = Counter(self.stats)
 
     def start(self, x, y):
+        """Start the game."""
         # while not self.valid_bv:
         self.set_mines(x, y)
         self.counter.start_timer()
         self.first = False
 
     def end(self):
+        """End the game."""
         self.counter.stop_timer()
         if self.board.is_blasted():
             self.stable = False
@@ -64,6 +66,7 @@ class Game(object):
                 tile.update_finish()
 
     def operate(func):
+        """Handle mouse event from upper layer."""
 
         def inner(self, x: float = -5.0, y: float = -5.0):
             if self.win or self.lose:
@@ -88,12 +91,14 @@ class Game(object):
 
     @operate
     def left(self, x, y, **kwargs):
+        """Handle left click."""
         if self.first:
             self.start(x, y)
         return self.board.left(x, y, self.opts.bfs, **kwargs), Counter.LEFT
 
     @operate
     def right(self, x, y, **kwargs):
+        """Handle right click."""
         if not self.opts.nf:
             return self.board.right(x, y, self.opts.easy_flag,
                                     **kwargs), Counter.RIGHT
@@ -102,6 +107,7 @@ class Game(object):
 
     @operate
     def double(self, x, y, **kwargs):
+        """Handle double click."""
         if not self.opts.nf:
             return self.board.double(x, y, self.opts.bfs,
                                      **kwargs), Counter.DOUBLE
@@ -110,27 +116,32 @@ class Game(object):
 
     @operate
     def left_hold(self, x, y, **kwargs):
+        """Handle left click and holding."""
         return self.board.left_hold(x, y, **kwargs), Counter.OTHERS
 
     @operate
     def double_hold(self, x, y, **kwargs):
+        """Handle double click and holding."""
         if not self.opts.nf:
             return self.board.double_hold(x, y, **kwargs), Counter.OTHERS
         return set(), Counter.OTHERS
 
     @operate
     def nothing(self, *args, **kwargs):
-        '''A slot for regularly refreshing the counter'''
+        """Regularly refresh the counter."""
         return set(), Counter.OTHERS
 
     def board_output(self, forced_whole_board=False):
+        """Output the board."""
         if self.stable and not forced_whole_board:
             return [(t.x, t.y, t.status) for t in self.recently_updated]
         else:
             return self.board.output()
 
     def time_output(self):
+        """Output the time."""
         pass
 
     def mines_left_output(self):
+        """Output the mines left."""
         pass

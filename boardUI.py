@@ -1,3 +1,5 @@
+"""The UI of the game."""
+
 from settings import load_settings
 from backend.game import Game
 from resources import get_skin
@@ -12,7 +14,7 @@ NS2MS = 1e-6
 
 
 class boardUI(QtWidgets.QWidget):
-    """UI of the board."""
+    """The UI of the game."""
 
     left_hold = pyqtSignal(int, int)
     double_hold = pyqtSignal(int, int)
@@ -24,6 +26,7 @@ class boardUI(QtWidgets.QWidget):
     drag = pyqtSignal(QMouseEvent)
 
     def __init__(self, parent=None):
+        """Init the board UI."""
         super(boardUI, self).__init__(parent)
         self.setAttribute(Qt.WA_OpaquePaintEvent, True)
         self.signals = [
@@ -34,6 +37,7 @@ class boardUI(QtWidgets.QWidget):
         self.init_board()
 
     def init_board(self):
+        """Init the board."""
         self.settings = load_settings()
 
         self.game = Game(self.settings.game)
@@ -56,6 +60,7 @@ class boardUI(QtWidgets.QWidget):
             signal.connect(slot)
 
     def paintEvent(self, event):
+        """Paint the board."""
         super().paintEvent(event)
         painter = QPainter()
         painter.begin(self)
@@ -67,10 +72,12 @@ class boardUI(QtWidgets.QWidget):
         painter.end()
 
     def resize(self, new_size):
+        """Resize the board."""
         self.tile_maps = get_skin(self.opts["skin"], new_size)
         self.update()
 
     def mousePressEvent(self, event):
+        """Handle mouse press event."""
         x_axis = event.localPos().x() / self.tile_size
         y_axis = event.localPos().y() / self.tile_size
         signal = int(event.buttons()) % 4
@@ -87,6 +94,7 @@ class boardUI(QtWidgets.QWidget):
         self.update()
 
     def mouseReleaseEvent(self, event):
+        """Handle mouse release event."""
         # a = timer()
         x_axis = event.localPos().x() / self.tile_size
         y_axis = event.localPos().y() / self.tile_size
@@ -103,6 +111,7 @@ class boardUI(QtWidgets.QWidget):
         # print((timer() - a)*NS2MS)
 
     def mouseMoveEvent(self, event):
+        """Handle mouse move event."""
         signal = int(event.buttons()) % 4
         if signal != 2:
             self.drag.emit(event)

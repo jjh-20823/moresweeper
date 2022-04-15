@@ -1,5 +1,9 @@
+"""A class for counting the game statistics."""
+
 stats_count = 18
 class STATS():
+    """A class for counting the game statistics."""
+
     [
         mode, time, BBBV, OP, IS, 
         solved_BBBV, solved_OP, solved_IS, 
