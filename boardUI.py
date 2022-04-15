@@ -6,8 +6,10 @@ from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QPainter, QMouseEvent
 
 from time import monotonic_ns, perf_counter_ns
+
 timer = perf_counter_ns
 NS2MS = 1e-6
+
 
 class boardUI(QtWidgets.QWidget):
     """UI of the board."""
@@ -61,7 +63,7 @@ class boardUI(QtWidgets.QWidget):
         size = self.tile_size
         temp = self.game.board_output()
         for x, y, status in temp:
-            painter.drawPixmap(y * size, x * size, self.tile_maps[status])
+            painter.drawPixmap(x * size, y * size, self.tile_maps[status])
         painter.end()
 
     def resize(self, new_size):
@@ -69,8 +71,8 @@ class boardUI(QtWidgets.QWidget):
         self.update()
 
     def mousePressEvent(self, event):
-        y_axis, x_axis = event.localPos().x(
-        ) / self.tile_size, event.localPos().y() / self.tile_size
+        x_axis = event.localPos().x() / self.tile_size
+        y_axis = event.localPos().y() / self.tile_size
         signal = int(event.buttons()) % 4
         if signal == 1 and not self.doubled:
             self.left_hold.emit(x_axis, y_axis)
@@ -86,10 +88,11 @@ class boardUI(QtWidgets.QWidget):
 
     def mouseReleaseEvent(self, event):
         # a = timer()
-        y_axis, x_axis = event.localPos().x(
-        ) / self.tile_size, event.localPos().y() / self.tile_size
+        x_axis = event.localPos().x() / self.tile_size
+        y_axis = event.localPos().y() / self.tile_size
         signal = int(event.buttons()) % 4
-        if (signal == 1 and event.button() == Qt.RightButton) or (signal == 2 and event.button() == Qt.LeftButton):
+        if (signal == 1 and event.button() == Qt.RightButton) or (
+                signal == 2 and event.button() == Qt.LeftButton):
             self.double.emit(x_axis, y_axis)
             self.doubled = True
         elif signal == 0:

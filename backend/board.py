@@ -16,15 +16,16 @@ class Board(object):
         self.opts: any = settings
         self.height: int = self.opts.height  # height
         self.width: int = self.opts.width  # width
-        self.tile_count: int = self.height * self.width
+        self.tile_count: int = self.width * self.height  # tile count
         self.mines: int = self.opts.mines  # mines
         self.init_tiles()
         self.set_tile_neighbours()
         self.init()
-
+        print(self)
+    
     def xy_index(self, x: int, y: int) -> int:
         """Convert a 2-D x-y coordinate to an 1-D index."""
-        return x * self.width + y
+        return x * self.height + y
 
     def tile_index(self, tile: Tile) -> int:
         """Get the index of the tile according to the current board."""
@@ -33,7 +34,7 @@ class Board(object):
 
     def in_board(self, x: int, y: int) -> bool:
         """Check whether a coordinate is in the board."""
-        return 0 <= x < self.height and 0 <= y < self.width
+        return 0 <= x < self.width and 0 <= y < self.height
 
     def get_tile(self, x: int, y: int):
         """Get a tile from the board."""
@@ -43,8 +44,8 @@ class Board(object):
                        itself: bool = False) -> Iterator[Tile]: # yapf: disable
         """Get neighbours of a 2-D coordinate inside the board."""
         for i, j in itertools.product(
-                range(max(0, x - radius), min(self.height, x + radius + 1)),
-                range(max(0, y - radius), min(self.width, y + radius + 1))):
+                range(max(0, x - radius), min(self.width, x + radius + 1)),
+                range(max(0, y - radius), min(self.height, y + radius + 1))):
             if i == x and j == y:
                 continue
             yield self.get_tile(i, j)
@@ -70,7 +71,7 @@ class Board(object):
     def init_tiles(self):
         """Initialize tiles."""
         self.tiles: list[Tile] = [
-            Tile(x, y) for x in range(self.height) for y in range(self.width)
+            Tile(x, y) for x in range(self.width) for y in range(self.height)
         ]
 
     def set_mines(self, x, y):
@@ -247,5 +248,5 @@ class Board(object):
     def __repr__(self):
         """Print the board's status."""
         return '\n'.join(' '.join(
-            str(self.get_tile(x, y).get_status()) for y in range(self.width))
-                         for x in range(self.height)) + '\n'
+            str(self.get_tile(x, y).get_status()) for x in range(self.width))
+                         for y in range(self.height)) + '\n'
