@@ -1,6 +1,9 @@
 """The tile class."""
 
 
+from typing import Iterable
+
+
 class Tile(object):
     """Tile: Minimum unit of minesweeper."""
 
@@ -27,6 +30,14 @@ class Tile(object):
         """Print a tile."""
         return f'Tile[v: {self.value}]: (x: {self.x}, y: {self.y})'
 
+    def get_coordinate(self) -> tuple[int, int]:
+        """Get the coordinate of the tile."""
+        return (self.x, self.y)
+
+    def get_status(self) -> int:
+        """Get the status of the tile."""
+        return self.status
+
     def set_mine(self):
         """Set a tile with a mine."""
         self.value = Tile.MINE
@@ -41,16 +52,20 @@ class Tile(object):
         """Judge whether the tile is a mine by its value."""
         return self.value == Tile.MINE
 
+    def get_neighbours(self) -> set:
+        """Get the neighbours of a tile."""
+        return self.neighbours
+
+    def set_neighbours(self, neighbours: Iterable):
+        """Set the neighbours of a tile."""
+        self.neighbours = set(neighbours)
+
     def recover(self):
         """Recover the status of the tile."""
         self.flagged = False  # flag indicator
         self.covered = True  # cover indicator
         self.down = False  # pressed indicator
         self.status = Tile.COVERED  # status for upper layer
-
-    def get_neighbours(self) -> set:
-        """Get the neighbours of a tile."""
-        return self.neighbours
 
     def update(self):
         """Update status of a tile."""

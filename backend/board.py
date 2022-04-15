@@ -2,7 +2,10 @@
 
 from .tile import Tile
 from .stats import *
+from typing import Iterator
+
 import random
+import itertools
 
 
 class Board(object):
@@ -13,61 +16,69 @@ class Board(object):
         self.opts: any = settings
         self.height: int = self.opts.height  # height
         self.width: int = self.opts.width  # width
-        self.tile_count: int = self.height * self.width
+        self.tile_count: int = self.width * self.height  # tile count
         self.mines: int = self.opts.mines  # mines
         self.init_tiles()
-
+        self.set_tile_neighbours()
+        self.init()
+        print(self)
+    
     def xy_index(self, x: int, y: int) -> int:
         """Convert a 2-D x-y coordinate to an 1-D index."""
-        return x * self.width + y
+        return x * self.height + y
 
     def tile_index(self, tile: Tile) -> int:
         """Get the index of the tile according to the current board."""
-        return self.xy_index(tile.x, tile.y)
+        x, y = tile.get_coordinate()
+        return self.xy_index(x, y)
 
-    def in_board(self, x, y):
-        """Judge whether a 2-D coordinate is inside the board."""
-        return 0 <= x < self.height and 0 <= y < self.width
+    def in_board(self, x: int, y: int) -> bool:
+        """Check whether a coordinate is in the board."""
+        return 0 <= x < self.width and 0 <= y < self.height
 
-    def get_tile(self, x, y):
+    def get_tile(self, x: int, y: int):
         """Get a tile from the board."""
         return self.tiles[self.xy_index(x, y)] if self.in_board(x, y) else None
 
-    def get_tiles(self, pairs):
-        """Get some tiles from the board."""
-        tiles = set(self.get_tile(*pair) for pair in pairs)
-        tiles.discard(None)
-        return tiles
+    def get_neighbours(self, x: int, y: int, radius: int = 1,
+                       itself: bool = False) -> Iterator[Tile]: # yapf: disable
+        """Get neighbours of a 2-D coordinate inside the board."""
+        for i, j in itertools.product(
+                range(max(0, x - radius), min(self.width, x + radius + 1)),
+                range(max(0, y - radius), min(self.height, y + radius + 1))):
+            if i == x and j == y:
+                continue
+            yield self.get_tile(i, j)
 
-    def set_neighbours(self):
+        if itself:
+            yield self.get_tile(x, y)
+
+    def set_tile_neighbours(self):
         """Set a tile's neighbours."""
         for tile in self.tiles:
-            tile.neighbours = self.get_tiles(
-                ((tile.x + i, tile.y + j) for i in (-1, 0, 1)
-                for j in (-1, 0, 1)))
-            tile.neighbours.remove(tile)
+            x, y = tile.get_coordinate()
+            neighbours = self.get_neighbours(x, y)
+            tile.set_neighbours(neighbours)
 
     def init(self):
         """Initialize the board."""
         self.finish: bool = False
         self.blast: bool = False
         self.stats = [0 for _ in range(stats_count)]
-        self.marker = [
-            [] for _ in range(self.tile_count)
-        ]
+        self.marker = [[] for _ in range(self.tile_count)]
         self.op_is_counter = [0 for _ in range(self.tile_count)]
 
     def init_tiles(self):
         """Initialize tiles."""
         self.tiles: list[Tile] = [
-            Tile(x, y) for x in range(self.height) for y in range(self.width)
-        ]  # tiles
-        self.set_neighbours()
-        self.init()
+            Tile(x, y) for x in range(self.width) for y in range(self.height)
+        ]
 
     def set_mines(self, x, y):
         """Set mines for the board."""
-        mine_field = [i for i in range(self.tile_count) if i != self.xy_index(x, y)]
+        mine_field = [
+            i for i in range(self.tile_count) if i != self.xy_index(x, y)
+        ]
         random.shuffle(mine_field)  # shuffle the field
 
         for i in mine_field[:self.mines]:
@@ -119,10 +130,10 @@ class Board(object):
             changed_tiles = set()
             if self.in_board(x, y):
                 changed_tiles = func(self, self.xy_index(x, y), *args)
-            
+
             if changed_tiles:
                 self.calc_in_game_stats(changed_tiles, replay)
-            
+
                 # update the game status (finish / blast)
                 self._update_finished()
                 self._update_blasted(changed_tiles)
@@ -161,14 +172,8 @@ class Board(object):
         return set()
 
     def output(self):
-        """Output all tiles' coordinate and status inside a board."""
+        """Output coordinate and status of all tiles inside a board."""
         return [(t.x, t.y, t.status) for t in self.tiles]
-
-    def neighbourhood(self, x, y):
-        """Get a 5*5 neighbourhood from a 2-D coordinate."""
-        return self.get_tiles(
-                ((x + i, y + j) for i in range(-2, 3)
-                for j in range(-2, 3)))
 
     def calc_basic_stats(self):
         """Calculate basic statistics."""
@@ -223,7 +228,8 @@ class Board(object):
         """Calculate statistics after the game is ended."""
         self.stats[STATS.flags] = sum(1 for t in self.tiles if t.flagged)
         self.stats[STATS.mines_left] = self.mines - self.stats[STATS.flags]
-        self.stats[STATS.solved_BBBV], self.stats[STATS.solved_OP], self.stats[STATS.solved_IS] = 0, 0, 0
+        self.stats[STATS.solved_BBBV], self.stats[STATS.solved_OP], self.stats[
+            STATS.solved_IS] = 0, 0, 0
         for t in self.tiles:
             if t.covered or t.is_mine():
                 continue
@@ -241,6 +247,6 @@ class Board(object):
 
     def __repr__(self):
         """Print the board's status."""
-        return '\n'.join(''.join(
-            str(self.get_tile(x, y).status) for y in range(self.width))
-                         for x in range(self.height)) + '\n'
+        return '\n'.join(' '.join(
+            str(self.get_tile(x, y).get_status()) for x in range(self.width))
+                         for y in range(self.height)) + '\n'

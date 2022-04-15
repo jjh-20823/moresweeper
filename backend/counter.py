@@ -6,6 +6,7 @@ NS2S = 1e-9
 
 class Counter():
     """Counter: A number of game statistics."""
+
     LEFT = 1
     RIGHT = 2
     DOUBLE = 3
@@ -19,11 +20,13 @@ class Counter():
         self.stats = stats
 
     def refresh_timer(self):
+        """Refresh the game's timer."""
         if self.active:
             self.game_time = (timer() - self.start_ns_time) * NS2S
 
     def get_time(self):
-        return  max(self.game_time, 0.0)
+        """Get the game elapsed time."""
+        return max(self.game_time, 0.0)
 
     def start_timer(self):
         """Start the timer."""
@@ -32,6 +35,7 @@ class Counter():
         self.refresh_timer()
 
     def stop_timer(self):
+        """Stop the timer."""
         self.refresh_timer()
         self.active = False
 
