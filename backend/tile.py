@@ -1,6 +1,5 @@
 """The tile class."""
 
-
 from typing import Iterable
 
 
@@ -25,6 +24,7 @@ class Tile(object):
         self.down: bool = False  # pressed indicator
         self.status: int = Tile.COVERED  # status for upper layer
         self.neighbours: set[Tile] = set()  # neighbours
+        self.neighbour_flags: int = 0  # number of neighbour flags
 
     def __repr__(self) -> str:
         """Print a tile."""
@@ -66,6 +66,7 @@ class Tile(object):
         self.covered = True  # cover indicator
         self.down = False  # pressed indicator
         self.status = Tile.COVERED  # status for upper layer
+        self.neighbour_flags = 0  # number of neighbour flags
 
     def update(self):
         """Update status of a tile."""
@@ -115,9 +116,8 @@ class Tile(object):
         if self.flagged or not self.covered:
             return set()
         self.covered = False
-        if not self.is_mine() and (
-                self.value == 0 or (BFS and self.value == sum(
-                    1 for t in self.get_neighbours() if t.flagged))):
+        if not self.is_mine() and (self.value == 0 or
+                                   (BFS and self.value == self.neighbour_flags)):  # yapf: disable
             return self.get_neighbours() | set((self, ))
         return set((self, ))
 
@@ -146,9 +146,13 @@ class Tile(object):
         """Handle flagging and easy flagging."""
         if self.flagged:
             self.flagged = False
+            for t in self.get_neighbours():
+                t.neighbour_flags -= 1  # update the number of neighbour flags
             return set((self, ))
         elif self.covered:
             self.flagged = True
+            for t in self.get_neighbours():
+                t.neighbour_flags += 1  # update the number of neighbour flags
             return set((self, ))
         elif easy_flag:
             covered_neighbours = set(t for t in self.get_neighbours()
@@ -158,5 +162,7 @@ class Tile(object):
             if self.value == len(covered_neighbours):
                 for t in covered_neighbours:
                     t.flagged = True
+                    for tt in t.get_neighbours():
+                        tt.neighbour_flags += 1
                 return unflagged_neighbours
         return set()
