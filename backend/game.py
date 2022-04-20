@@ -30,7 +30,7 @@ class Game(object):
         if not self.upk:
             # don't need to update the mine field when it is UPK mode
             self.board.set_mines(x, y)
-        self.board.calc_basic_stats()
+        # self.board.calc_basic_stats()
 
     def init_upk(self):
         """Toggle UPK mode."""

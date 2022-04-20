@@ -1,8 +1,11 @@
 """The tile class."""
 
 from typing import Iterable
+from queue import Queue
+from time import monotonic_ns, perf_counter_ns
 
-
+timer = perf_counter_ns
+NS2MS = 1e-6
 class Tile(object):
     """Tile: Minimum unit of minesweeper."""
 
@@ -114,31 +117,44 @@ class Tile(object):
     def basic_open(self, BFS: bool = False):
         """Handle basic opening."""
         if self.flagged or not self.covered:
-            return set()
+            return False, set()
         self.covered = False
-        if not self.is_mine() and (self.value == 0 or
-                                   (BFS and self.value == self.neighbour_flags)):  # yapf: disable
-            return self.get_neighbours() | set((self, ))
-        return set((self, ))
+        if self.value == 0 or (BFS and self.value == self.neighbour_flags): 
+            return True, self.get_neighbours()
+        return True, set()
 
     def open(self, BFS: bool = False, test_op: bool = False):
         """Handle normal opening."""
-        search = set((self, ))
+        search = Queue()
+        search.put(self)
         searched = set()
         changed = set()
-        while (search):
-            t = search.pop()
-            searched.add(t)
-            temp = t.basic_open(BFS)
-            if temp:
-                search = search | temp - searched
+        # sa = sb = sc = sd = 0
+        # p = 0
+        while not search.empty():
+            # a = timer()
+            t = search.get()
+            # p += 1
+            # sa += timer() - a
+            # b = timer()
+            eff, to_search = t.basic_open(BFS)
+            # sb += timer() - b
+            # c = timer()
+            for tt in to_search:
+                search.put(tt)
+            # sc += timer() - c
+            # if test_op:
+            #     searched.add(t)
+            # d = timer()
+            if eff:
                 changed.add(t)
+            # sd += timer() - d
+        # print(p, sa * NS2MS, sb * NS2MS, sc * NS2MS, sd * NS2MS)
         return changed if not test_op else searched
 
     def double(self, BFS: bool = False):
         """Handle chording."""
-        if not self.covered and self.value == sum(
-                1 for t in self.get_neighbours() if t.flagged):
+        if not self.covered and self.value == self.neighbour_flags:
             return set.union(*(t.open(BFS) for t in self.get_neighbours()))
         return set()
 
